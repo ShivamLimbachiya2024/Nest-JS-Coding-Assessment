@@ -1,0 +1,96 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": [
+      "jest",
+      "node"
+    ],
+    "paths": {
+      "@taskflow/auth": [
+        "./libs/auth/src/index.ts"
+      ],
+      "@taskflow/auth/*": [
+        "./libs/auth/src/*"
+      ],
+      "@taskflow/common": [
+        "./libs/common/src/index.ts"
+      ],
+      "@taskflow/common/*": [
+        "./libs/common/src/*"
+      ],
+      "@taskflow/config": [
+        "./libs/config/src/index.ts"
+      ],
+      "@taskflow/config/*": [
+        "./libs/config/src/*"
+      ],
+      "@taskflow/contracts": [
+        "./libs/contracts/src/index.ts"
+      ],
+      "@taskflow/contracts/*": [
+        "./libs/contracts/src/*"
+      ],
+      "@taskflow/database": [
+        "./libs/database/src/index.ts"
+      ],
+      "@taskflow/database/*": [
+        "./libs/database/src/*"
+      ],
+      "@taskflow/database/user-service": [
+        "./libs/database/src/entities/user-service/index.ts"
+      ],
+      "@taskflow/database/task-service": [
+        "./libs/database/src/entities/task-service/index.ts"
+      ],
+      "@taskflow/database/notification-service": [
+        "./libs/database/src/entities/notification-service/index.ts"
+      ],
+      "@taskflow/logger": [
+        "./libs/logger/src/index.ts"
+      ],
+      "@taskflow/logger/*": [
+        "./libs/logger/src/*"
+      ],
+      "@taskflow/rabbitmq": [
+        "./libs/rabbitmq/src/index.ts"
+      ],
+      "@taskflow/rabbitmq/*": [
+        "./libs/rabbitmq/src/*"
+      ]
+    }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/user-service/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/task-service/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/notification-service/tsconfig.app.json"
+    }
+  ]
+}
