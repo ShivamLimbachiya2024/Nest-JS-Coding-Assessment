@@ -154,10 +154,12 @@ Run all commands from the repository root. Use Node.js 24 and npm 10 or newer.
 ```sh
 nvm use
 npm ci
-cp .env.example .env
+cp apps/user-service/.env.example apps/user-service/.env
+cp apps/task-service/.env.example apps/task-service/.env
+cp apps/notification-service/.env.example apps/notification-service/.env
 ```
 
-Keep `.env` local. Set different secure values for `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`; each must be at least 32 characters.
+Keep the three app-local files private. Set the same `JWT_ACCESS_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`, and `ACCESS_COOKIE_NAME` in all three files. Set a separate `JWT_REFRESH_SECRET` in `apps/user-service/.env`. Each secret must be at least 32 characters.
 
 ### Start infrastructure
 

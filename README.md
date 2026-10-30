@@ -22,10 +22,12 @@ git clone <repository-url>
 cd <repository-directory>
 nvm use
 npm ci
-cp .env.example .env
+cp apps/user-service/.env.example apps/user-service/.env
+cp apps/task-service/.env.example apps/task-service/.env
+cp apps/notification-service/.env.example apps/notification-service/.env
 ```
 
-If you installed Node.js without `nvm`, skip `nvm use`. Keep `.env` local; Git ignores it. It contains local database and broker settings as well as secrets.
+If you installed Node.js without `nvm`, skip `nvm use`. Each app's local `.env` file is ignored by Git. A service and its related background process load the configuration in that app's directory.
 
 Generate two different secrets:
 
@@ -34,11 +36,11 @@ openssl rand -hex 32
 openssl rand -hex 32
 ```
 
-Copy the first value into `JWT_ACCESS_SECRET` and the second into `JWT_REFRESH_SECRET` in `.env`. Each must be at least 32 characters. Do not use the example placeholders as secrets. The checked-in `.env.example` contains development-only database and RabbitMQ credentials; change them if you expose these services beyond your machine.
+Use the first value as `JWT_ACCESS_SECRET` in all three app `.env` files so each service verifies the same access tokens. Use the second value as `JWT_REFRESH_SECRET` in `apps/user-service/.env`. Each secret must be at least 32 characters. Do not use the example placeholders as secrets. The checked-in examples contain development-only database and RabbitMQ credentials; change them if you expose these services beyond your machine.
 
 ## Start PostgreSQL and RabbitMQ
 
-By default, Docker Compose starts both RabbitMQ and PostgreSQL. PostgreSQL 16 creates the `taskflow` database on first startup and publishes it on port 5432. The local `.env` defaults match this development database.
+By default, Docker Compose starts both RabbitMQ and PostgreSQL. PostgreSQL 16 creates the `taskflow` database on first startup and publishes it on port 5432. The app-local environment files use these local development settings.
 
 ### Start infrastructure
 
@@ -51,7 +53,7 @@ Wait until both containers show as healthy before continuing. The PostgreSQL ser
 
 ### Use a PostgreSQL server you already have
 
-To use your own PostgreSQL for host-run application processes, edit the `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, and `DATABASE_NAME` values in `.env` to match your server, and stop the Compose PostgreSQL container with `docker compose stop postgres`.
+To use your own PostgreSQL for host-run application processes, update `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, and `DATABASE_NAME` in all three app `.env` files, and stop the Compose PostgreSQL container with `docker compose stop postgres`.
 
 Create an empty database named `taskflow` once, if it does not already exist. For a PostgreSQL installation with `createdb` available, for example:
 
@@ -72,7 +74,7 @@ Wait for RabbitMQ to show as healthy. The management UI is available at `http://
 
 ## Create the service schemas
 
-The first run requires one explicit TypeORM migration for all three service schemas. Run it from the repository root after PostgreSQL is ready:
+The first run requires one explicit TypeORM migration for all three service schemas. The migration command loads `apps/user-service/.env` for the shared database connection. Run it from the repository root after PostgreSQL is ready:
 
 ```sh
 npm run migration-run
@@ -168,7 +170,7 @@ curl -b cookies.txt http://localhost:3003/notifications
 
 ## Configuration and security notes
 
-- `.env.example` lists all required configuration keys. `.env` is the local working copy and is ignored by Git.
+- `apps/user-service/.env.example`, `apps/task-service/.env.example`, and `apps/notification-service/.env.example` document service-specific configuration. Each app's `.env` is ignored by Git.
 - Use separate `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` values. User Service signs refresh tokens; all three HTTP services verify access tokens.
 - Browser clients must use credentialed requests and an origin listed in `CORS_ORIGINS`. The local defaults allow the frontend on port 3000 and same-origin Swagger pages on API ports 3001, 3002, and 3003. Keep the allow-list explicit.
 - Public registration accepts `ADMIN` because the assessment requires it. A production system would normally restrict administrator creation.

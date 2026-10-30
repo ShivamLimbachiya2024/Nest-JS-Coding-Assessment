@@ -40,7 +40,7 @@ services:
     volumes:
       - .:/workspace
       - /workspace/node_modules
-    env_file: .env
+    env_file: apps/user-service/.env
     environment:
       SERVICE_NAME: user-service
       DATABASE_HOST: postgres
@@ -62,7 +62,7 @@ services:
     volumes:
       - .:/workspace
       - /workspace/node_modules
-    env_file: .env
+    env_file: apps/task-service/.env
     environment:
       SERVICE_NAME: task-service
       DATABASE_HOST: postgres
@@ -84,7 +84,7 @@ services:
     volumes:
       - .:/workspace
       - /workspace/node_modules
-    env_file: .env
+    env_file: apps/notification-service/.env
     environment:
       SERVICE_NAME: notification-service
       DATABASE_HOST: postgres
@@ -106,7 +106,7 @@ services:
     volumes:
       - .:/workspace
       - /workspace/node_modules
-    env_file: .env
+    env_file: apps/user-service/.env
     environment:
       SERVICE_NAME: user-verification-worker
       DATABASE_HOST: postgres
@@ -127,7 +127,7 @@ services:
     volumes:
       - .:/workspace
       - /workspace/node_modules
-    env_file: .env
+    env_file: apps/notification-service/.env
     environment:
       SERVICE_NAME: notification-task-completed-worker
       DATABASE_HOST: postgres
@@ -148,7 +148,7 @@ services:
     volumes:
       - .:/workspace
       - /workspace/node_modules
-    env_file: .env
+    env_file: apps/task-service/.env
     environment:
       SERVICE_NAME: task-outbox-publisher
       DATABASE_HOST: postgres
