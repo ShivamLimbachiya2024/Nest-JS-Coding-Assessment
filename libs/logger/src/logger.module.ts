@@ -12,8 +12,9 @@ import { StoryLogger } from './logger.service.js'
       useFactory: (config: AppConfigService) => ({
         pinoHttp: {
           autoLogging: false,
-          customProps: () => ({ service: config.serviceName }),
+          base: { service: config.serviceName },
           level: config.isProduction ? 'info' : 'debug',
+          quietReqLogger: true,
           redact: {
             paths: [
               'req.headers.authorization',
@@ -33,7 +34,8 @@ import { StoryLogger } from './logger.service.js'
                 options: {
                   colorize: true,
                   singleLine: true,
-                  translateTime: 'SYS standard',
+                  translateTime: 'SYS:standard',
+                  ignore: 'pid,hostname',
                 },
               },
         },

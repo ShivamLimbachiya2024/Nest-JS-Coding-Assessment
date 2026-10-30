@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import { ApplicationExceptionFilter, RequestLoggingInterceptor } from 'common'
+import { ApplicationExceptionFilter } from 'common'
 import { AppConfigService } from 'config'
 import cookieParser from 'cookie-parser'
 import { Logger } from 'nestjs-pino'
@@ -24,7 +24,6 @@ async function bootstrap(): Promise<void> {
     }),
   )
   app.useGlobalFilters(app.get(ApplicationExceptionFilter))
-  app.useGlobalInterceptors(app.get(RequestLoggingInterceptor))
   app.enableShutdownHooks()
 
   const swaggerConfig = new DocumentBuilder()

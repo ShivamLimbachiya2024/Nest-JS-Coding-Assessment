@@ -172,7 +172,7 @@ curl -b cookies.txt http://localhost:3003/notifications
 
 - `.env.example` lists all required configuration keys. `.env` is the local working copy and is ignored by Git.
 - Use separate `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` values. User Service signs refresh tokens; all three HTTP services verify access tokens.
-- Browser clients must use credentialed requests and an origin listed in `CORS_ORIGINS`. Keep the allow-list explicit.
+- Browser clients must use credentialed requests and an origin listed in `CORS_ORIGINS`. The local defaults allow the frontend on port 3000 and same-origin Swagger pages on API ports 3001, 3002, and 3003. Keep the allow-list explicit.
 - Public registration accepts `ADMIN` because the assessment requires it. A production system would normally restrict administrator creation.
 - Passwords are Argon2-hashed. Refresh tokens are rotated and stored only as hashes. Authentication tokens are sent in HttpOnly cookies.
 - RabbitMQ delivery is at least once. Outbox publishing and notification idempotency protect against message loss and duplicates; the system does not claim exactly-once delivery.

@@ -4,7 +4,6 @@ import { ApplicationExceptionFilter } from './application-exception.filter.js'
 import { CorrelationMiddleware } from './correlation.middleware.js'
 import { OriginMiddleware } from './origin.middleware.js'
 import { RequestContext } from './request-context.js'
-import { RequestLoggingInterceptor } from './request-logging.interceptor.js'
 
 @Global()
 @Module({
@@ -14,13 +13,8 @@ import { RequestLoggingInterceptor } from './request-logging.interceptor.js'
     CorrelationMiddleware,
     OriginMiddleware,
     RequestContext,
-    RequestLoggingInterceptor,
   ],
-  exports: [
-    ApplicationExceptionFilter,
-    RequestContext,
-    RequestLoggingInterceptor,
-  ],
+  exports: [ApplicationExceptionFilter, RequestContext],
 })
 export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
