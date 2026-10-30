@@ -26,6 +26,15 @@ const sourceOutput = execFileSync('rg', ['--files', 'apps', 'libs'], {
   encoding: 'utf8',
 })
 const sourceFiles = filter(map(split(sourceOutput, '\n'), trim), Boolean)
+const misplacedSpecs = filter(
+  sourceFiles,
+  (file) => file.includes('/src/') && file.endsWith('.spec.ts'),
+)
+if (misplacedSpecs.length > 0) {
+  throw new Error(
+    `Unit tests must live in test folders files=${join(misplacedSpecs, ',')}`,
+  )
+}
 const forbiddenFragments = [
   'synchronize' + ': true',
   'logger.info({',

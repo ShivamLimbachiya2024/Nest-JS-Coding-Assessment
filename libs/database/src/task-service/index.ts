@@ -1,2 +1,2 @@
-export * from './outbox-message.entity.js'
-export * from './task.entity.js'
+export * from '../entities/outbox-message.entity.js'
+export * from '../entities/task.entity.js'

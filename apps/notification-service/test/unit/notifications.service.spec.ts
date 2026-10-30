@@ -1,0 +1,20 @@
+import { Test, TestingModule } from '@nestjs/testing'
+import { NotificationsService } from '../../src/notifications/notifications.service.js'
+
+describe('NotificationsService', () => {
+  let service: NotificationsService
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [NotificationsService],
+    })
+      .useMocker(() => ({}))
+      .compile()
+
+    service = module.get<NotificationsService>(NotificationsService)
+  })
+
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
+})

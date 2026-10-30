@@ -2,7 +2,7 @@
 
 ## Objective and acceptance
 
-Implement authenticated task creation, bounded filtering/listing, lookup, status change, ADMIN reassignment/deletion, user verification over RabbitMQ, and reliable task-completed publication through a transactional outbox.
+Implement authenticated task creation, bounded filtering/listing, lookup, status change, ADMIN reassignment/deletion, user verification over RabbitMQ, and reliable `task.completed` publication through a transactional outbox.
 
 Acceptance requires no task row after failed verification, distinct missing-user and unavailable/timeout failures, MEMBER denial for privileged operations, and exactly one outbox message for a real transition into `DONE`.
 

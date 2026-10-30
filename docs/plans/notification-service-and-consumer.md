@@ -2,7 +2,7 @@
 
 ## Objective and acceptance
 
-Consume task-completed events idempotently and expose authenticated, paginated, newest-first notifications scoped to the verified principal.
+Consume `task.completed` events idempotently and expose authenticated, paginated, newest-first notifications scoped to the verified principal.
 
 Acceptance requires duplicate deliveries to create one row, acknowledgement only after commit or safe duplicate recognition, terminal messages to reach the dead-letter queue, transient failures to use bounded retries, and no cross-user reads.
 

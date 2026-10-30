@@ -33,15 +33,9 @@
     "start-user-verification-worker": "WORKER_QUEUE=user_verification nest start user-verification-worker --watch",
     "start-notification-task-completed-worker": "WORKER_QUEUE=notification_task_completed nest start notification-task-completed-worker --watch",
     "start-task-outbox": "nest start task-outbox --watch",
-    "migration-generate-user": "typeorm-ts-node-esm migration:generate libs/database/src/migrations/user-service/initial-user-schema -d libs/database/src/data-sources/user.data-source.ts",
-    "migration-generate-task": "typeorm-ts-node-esm migration:generate libs/database/src/migrations/task-service/initial-task-schema -d libs/database/src/data-sources/task.data-source.ts",
-    "migration-generate-notification": "typeorm-ts-node-esm migration:generate libs/database/src/migrations/notification-service/initial-notification-schema -d libs/database/src/data-sources/notification.data-source.ts",
-    "migration-run-user": "typeorm-ts-node-esm migration:run -d libs/database/src/data-sources/user.data-source.ts",
-    "migration-run-task": "typeorm-ts-node-esm migration:run -d libs/database/src/data-sources/task.data-source.ts",
-    "migration-run-notification": "typeorm-ts-node-esm migration:run -d libs/database/src/data-sources/notification.data-source.ts",
-    "migration-revert-user": "typeorm-ts-node-esm migration:revert -d libs/database/src/data-sources/user.data-source.ts",
-    "migration-revert-task": "typeorm-ts-node-esm migration:revert -d libs/database/src/data-sources/task.data-source.ts",
-    "migration-revert-notification": "typeorm-ts-node-esm migration:revert -d libs/database/src/data-sources/notification.data-source.ts"
+    "migration-generate": "typeorm-ts-node-esm migration:generate libs/database/src/migrations/initial-schema -d libs/database/src/data-sources/index.ts",
+    "migration-run": "typeorm-ts-node-esm migration:run -d libs/database/src/data-sources/index.ts",
+    "migration-revert": "typeorm-ts-node-esm migration:revert -d libs/database/src/data-sources/index.ts"
   },
   "dependencies": {
     "@nestjs/common": "12.3.2",

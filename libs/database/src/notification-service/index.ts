@@ -1,1 +1,1 @@
-export * from './notification.entity.js'
+export * from '../entities/notification.entity.js'

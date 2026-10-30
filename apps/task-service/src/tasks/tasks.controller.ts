@@ -14,9 +14,12 @@ import {
 } from '@nestjs/common'
 import {
   ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiExtraModels,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger'
 import { AccessAuthGuard, Roles, RolesGuard } from 'auth'
 import { PaginationResponse } from 'common'
@@ -31,16 +34,40 @@ import { TasksService } from './tasks.service.js'
 @Controller('tasks')
 @ApiTags('tasks')
 @ApiCookieAuth('access_token')
+@ApiExtraModels(TaskResponseDto)
 @UseGuards(AccessAuthGuard)
 export class TasksController {
   constructor(private readonly tasks: TasksService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: TaskResponseDto })
   create(@Body() input: CreateTaskDto): Promise<TaskResponseDto> {
     return this.tasks.create(input)
   }
 
   @Get()
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: getSchemaPath(TaskResponseDto) },
+        },
+        meta: {
+          type: 'object',
+          properties: {
+            page: { type: 'integer', example: 1 },
+            pageSize: { type: 'integer', example: 20 },
+            total: { type: 'integer', example: 42 },
+            totalPages: { type: 'integer', example: 3 },
+          },
+          required: ['page', 'pageSize', 'total', 'totalPages'],
+        },
+      },
+      required: ['data', 'meta'],
+    },
+  })
   list(
     @Query() query: TaskQueryDto,
   ): Promise<PaginationResponse<TaskResponseDto>> {
@@ -56,6 +83,7 @@ export class TasksController {
   }
 
   @Patch(':id/status')
+  @ApiOkResponse({ type: TaskResponseDto })
   updateStatus(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() input: UpdateTaskStatusDto,
@@ -64,6 +92,7 @@ export class TasksController {
   }
 
   @Patch(':id/assign')
+  @ApiOkResponse({ type: TaskResponseDto })
   @Roles([UserRole.ADMIN])
   @UseGuards(RolesGuard)
   assign(

@@ -32,6 +32,11 @@ async function bootstrap(): Promise<void> {
       type: 'apiKey',
       in: 'cookie',
     })
+    .addCookieAuth(
+      config.refreshCookieName,
+      { type: 'apiKey', in: 'cookie' },
+      'refresh_token',
+    )
     .build()
   SwaggerModule.setup(
     'docs',

@@ -72,15 +72,13 @@ Wait for RabbitMQ to show as healthy. The management UI is available at `http://
 
 ## Create the service schemas
 
-The first run requires the three explicit TypeORM migrations. Run them from the repository root after PostgreSQL is ready:
+The first run requires one explicit TypeORM migration for all three service schemas. Run it from the repository root after PostgreSQL is ready:
 
 ```sh
-npm run migration-run-user
-npm run migration-run-task
-npm run migration-run-notification
+npm run migration-run
 ```
 
-Each command creates its service-owned schema and tables in the `taskflow` database. `synchronize` is disabled; the application does not create or change database tables automatically.
+This creates the `users`, `tasks`, and `notifications` schemas in the configured database. `synchronize` is disabled; the application does not create or change database tables automatically. Future schema changes are generated, applied, and reverted through the central migration stream using `migration-generate`, `migration-run`, and `migration-revert`.
 
 ## Run TaskFlow on your machine
 
@@ -119,7 +117,7 @@ docker compose down
 
 ## Try the main workflow
 
-Cookie-authenticated state-changing requests require an allowed `Origin`. The local example permits `http://localhost:3000`; include it in calls made with `curl` or another API client.
+Cookie-authenticated state-changing requests require an allowed `Origin`. The local example allows `http://localhost:3000` and the three local API origins; include the origin you are using in calls made with `curl` or another API client.
 
 Register an ADMIN account:
 
@@ -193,7 +191,7 @@ npm run test-e2e
 - `apps/` contains the three HTTP applications, the two one-queue workers, and the separate Task outbox publisher.
 - `libs/` contains shared contracts and infrastructure. Shared libraries do not import from applications, and each service imports only its own persistence exports.
 - TypeORM migrations and data sources are separate for User, Task, and Notification schemas. Automatic migration execution and schema synchronization are disabled.
-- RabbitMQ handles both synchronous user-existence request/reply and asynchronous task-completed events. A shared typed `sendToQueue` function routes every outbound message using queue enums and payload types.
+- RabbitMQ handles both synchronous user-existence request/reply and asynchronous `task.completed` events. A shared typed `sendToQueue` function routes every outbound message using queue enums and payload types.
 - Pino is the application logger. Correlation IDs are returned in `x-correlation-id` and carried through RabbitMQ message envelopes.
 - CORS uses an explicit origin allow-list. State-changing requests check the origin; cross-site `SameSite=None` cookies are not enabled because a CSRF token flow is outside this assessment.
 
@@ -218,10 +216,12 @@ npx nest generate library logger
 npx nest generate library rabbitmq
 ```
 
-Feature modules and providers were generated with their corresponding Nest CLI schematics. TypeORM migrations are generated and run only through the service-specific npm scripts. The migration generation commands are:
+Feature modules and providers were generated with their corresponding Nest CLI schematics. TypeORM migrations are generated and run through one central migration data source. After updating the service-owned entity classes, generate, apply, or revert migrations with:
 
 ```sh
-npm run migration-generate-user
-npm run migration-generate-task
-npm run migration-generate-notification
+npm run migration-generate
+npm run migration-run
+npm run migration-revert
 ```
+
+`migration-revert` reverts the most recently applied central migration. Review generated SQL before applying it. The central migration history coordinates schema changes across all three service schemas; each running service still configures only its own entities and owns writes to its own schema.

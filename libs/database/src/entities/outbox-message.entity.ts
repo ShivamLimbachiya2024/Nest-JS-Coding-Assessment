@@ -2,7 +2,7 @@ import {
   MessageType,
   OutboxStatus,
   TaskCompleted,
-} from '../../../../contracts/src/index.js'
+} from '../../../contracts/src/index.js'
 import {
   Column,
   CreateDateColumn,

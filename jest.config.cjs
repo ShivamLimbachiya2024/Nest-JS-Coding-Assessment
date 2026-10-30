@@ -1,11 +1,17 @@
 module.exports = {
   clearMocks: true,
-  collectCoverageFrom: ['apps/**/*.ts', 'libs/**/*.ts', '!**/*.module.ts', '!**/main.ts', '!**/worker.ts'],
+  collectCoverageFrom: [
+    'apps/**/*.ts',
+    'libs/**/*.ts',
+    '!**/*.module.ts',
+    '!**/main.ts',
+    '!**/worker.ts',
+  ],
   extensionsToTreatAsEsm: ['.ts'],
   moduleFileExtensions: ['js', 'json', 'ts'],
   moduleNameMapper: {
     '^database/(user-service|task-service|notification-service)$':
-      '<rootDir>/libs/database/src/entities/$1/index.ts',
+      '<rootDir>/libs/database/src/$1/index.ts',
     '^(auth|common|config|contracts|database|logger|rabbitmq)$':
       '<rootDir>/libs/$1/src/index.ts',
     '^(auth|common|config|contracts|database|logger|rabbitmq)/(.*)$':

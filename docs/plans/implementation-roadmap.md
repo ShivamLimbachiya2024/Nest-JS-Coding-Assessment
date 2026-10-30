@@ -21,9 +21,9 @@ The shared platform precedes feature wiring. User verification must exist before
 ## Cross-cutting decisions
 
 - Node 24 LTS, NestJS 12, TypeScript strict mode, npm, Express, PostgreSQL 16, TypeORM, RabbitMQ, Pino, Argon2, Lodash, and Jest.
-- Three service-owned schemas in one `taskflow` database, separate data sources and migration streams, and `synchronize` disabled.
+- Three service-owned schemas in one `taskflow` database, service-scoped runtime data sources, one central migration data source, and `synchronize` disabled.
 - Access and refresh JWTs are delivered only in configurable `HttpOnly` cookies.
-- RabbitMQ provides user request/reply and durable task-completed delivery. Cross-service HTTP calls and shared database writes are forbidden.
+- RabbitMQ provides user request/reply and durable `task.completed` delivery. Cross-service HTTP calls and shared database writes are forbidden.
 - At-least-once publication with a transactional outbox and idempotent consumer is claimed. Exactly-once delivery is not claimed.
 - Public ADMIN registration is retained only because the assessment requires it.
 

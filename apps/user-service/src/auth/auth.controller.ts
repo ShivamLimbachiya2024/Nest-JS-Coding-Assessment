@@ -1,5 +1,19 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common'
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common'
+import {
+  ApiBody,
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger'
 import { AppConfigService } from 'config'
 import type { Request, Response } from 'express'
 import get from 'lodash/get.js'
@@ -19,12 +33,14 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @ApiBody({ type: RegisterUserDto })
   @ApiCreatedResponse({ type: UserResponseDto })
   register(@Body() input: RegisterUserDto): Promise<UserResponseDto> {
     return this.auth.register(input)
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: RefreshResponseDto })
   async login(
     @Body() input: LoginUserDto,
@@ -36,6 +52,8 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiCookieAuth('refresh_token')
   @ApiOkResponse({ type: RefreshResponseDto })
   async refresh(
     @Req() request: Request,

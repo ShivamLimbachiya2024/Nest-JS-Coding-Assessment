@@ -35,14 +35,10 @@
       "contracts/*": ["./libs/contracts/src/*"],
       "database": ["./libs/database/src/index.ts"],
       "database/*": ["./libs/database/src/*"],
-      "database/user-service": [
-        "./libs/database/src/entities/user-service/index.ts"
-      ],
-      "database/task-service": [
-        "./libs/database/src/entities/task-service/index.ts"
-      ],
+      "database/user-service": ["./libs/database/src/user-service/index.ts"],
+      "database/task-service": ["./libs/database/src/task-service/index.ts"],
       "database/notification-service": [
-        "./libs/database/src/entities/notification-service/index.ts"
+        "./libs/database/src/notification-service/index.ts"
       ],
       "logger": ["./libs/logger/src/index.ts"],
       "logger/*": ["./libs/logger/src/*"],

@@ -17,7 +17,7 @@ export enum ExchangeName {
 
 export enum RoutingKey {
   USERS_EXISTS_REQUEST = 'users-exists-request',
-  TASK_COMPLETED = 'task-completed',
+  TASK_COMPLETED = 'task.completed',
   NOTIFICATION_RETRY_ONE = 'notification-retry-one',
   NOTIFICATION_RETRY_TWO = 'notification-retry-two',
   NOTIFICATION_RETRY_THREE = 'notification-retry-three',

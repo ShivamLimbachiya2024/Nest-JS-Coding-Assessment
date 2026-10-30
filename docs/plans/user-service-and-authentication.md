@@ -8,7 +8,7 @@ Acceptance requires stable duplicate-email handling, generic credential failures
 
 ## Ownership, data, and migration
 
-User Service owns `users.users` and `users.refresh_sessions`. The user and refresh-session entities originate from Nest class schematics, then TypeORM generates the schema migration through the user data source. Other services never import or write these entities.
+User Service owns `users.users` and `users.refresh_sessions`. The user and refresh-session entities originate from Nest class schematics, then TypeORM generates schema changes through the central migration data source. Other services never use these entities at runtime or write these tables.
 
 ## HTTP, auth, and failure behavior
 

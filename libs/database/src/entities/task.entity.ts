@@ -1,4 +1,4 @@
-import { TaskStatus } from '../../../../contracts/src/index.js'
+import { TaskStatus } from '../../../contracts/src/index.js'
 import {
   Column,
   CreateDateColumn,

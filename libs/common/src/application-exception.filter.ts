@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common'
 import { StoryLogger } from 'logger'
 import { Request, Response } from 'express'
+import split from 'lodash/split.js'
 import { ApplicationError } from './application-error.js'
 import { ErrorCode } from './error-code.enum.js'
 import { RequestContext } from './request-context.js'
@@ -33,19 +34,20 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     const request = http.getRequest<Request>()
     const response = http.getResponse<Response>()
     const mapped = this.map(exception)
+    const path = split(request.originalUrl, '?')[0] ?? '/'
 
     if (mapped.status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       const errorType =
         exception instanceof Error ? exception.name : 'UnknownFailure'
       this.logger.error(
-        `HTTP operation failed correlationId=${this.context.correlationId} operation=${request.method}-${request.path} outcome=failed errorType=${errorType} errorCode=${mapped.code}`,
+        `HTTP operation failed correlationId=${this.context.correlationId} operation=${request.method}-${path} outcome=failed errorType=${errorType} errorCode=${mapped.code}`,
       )
     }
 
     const body: ErrorResponse = {
       ...mapped,
       timestamp: new Date().toISOString(),
-      path: request.path,
+      path,
       correlationId: this.context.correlationId,
     }
 
