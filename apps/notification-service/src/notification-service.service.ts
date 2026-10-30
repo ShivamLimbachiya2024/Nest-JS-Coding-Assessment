@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, ServiceUnavailableException } from '@nestjs/common'
 import { RabbitmqService } from 'rabbitmq'
 import { DataSource } from 'typeorm'
 
@@ -13,12 +13,21 @@ export class NotificationServiceService {
     return { status: 'live' }
   }
 
-  ready(): Readonly<Record<string, string>> {
-    return {
-      status:
-        this.dataSource.isInitialized && this.rabbitmq.isReady
-          ? 'ready'
-          : 'not-ready',
+  async ready(): Promise<Readonly<Record<string, string>>> {
+    if (!this.dataSource.isInitialized || !this.rabbitmq.isReady) {
+      throw new ServiceUnavailableException(
+        'Service dependencies are unavailable',
+      )
     }
+
+    try {
+      await this.dataSource.query('SELECT 1')
+    } catch {
+      throw new ServiceUnavailableException(
+        'Service dependencies are unavailable',
+      )
+    }
+
+    return { status: 'ready' }
   }
 }

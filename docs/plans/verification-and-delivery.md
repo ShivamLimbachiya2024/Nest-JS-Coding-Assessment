@@ -25,7 +25,7 @@ External infrastructure may be unavailable or occupied. Such checks are reported
 
 ## Completion state
 
-- [x] Static checks, 37 unit tests, six app builds, and HTTP liveness e2e checks pass after test relocation
+- [x] Static checks, 37 unit tests, six app builds, and 12 health/readiness e2e checks pass
 - [x] Central migration is recorded in the configured database without resetting existing service data
 - [x] Host-run registration, login, refresh rotation/reuse, task creation/completion, outbox publication, and notification listing flow passes
 - [x] HTTP RBAC smoke check confirms MEMBER assignment/deletion are denied and ADMIN assignment/deletion succeed
@@ -35,6 +35,6 @@ External infrastructure may be unavailable or occupied. Such checks are reported
 - [ ] Auth/RBAC/filtering/validation Swagger e2e matrix and retry/DLQ/reconnect fault injection remain unverified
 - [ ] Graceful SIGTERM during in-flight HTTP and worker operations remains unverified
 
-Verified on 2026-10-30: the central migration ran, reverted, and ran again against a disposable database containing all three schemas; it was then registered against the existing database without modifying its data. A subsequent central migration run reports no pending changes. Host-run HTTP checks verified registration 201, login/refresh 200, rotated refresh tokens with reuse rejected as 401, task creation 201, task status DONE, a listed completion notification, and a PUBLISHED outbox row. RBAC checks verified MEMBER assignment/deletion return 403 while ADMIN assignment/deletion return 200/204. Live Swagger JSON includes route schemas, pagination/filter parameters, and the documented login/register response codes. Temporary smoke-test rows were deleted by exact synthetic email. After moving all unit specs under `test/unit`, 37 unit tests, three health e2e tests, repository policy, formatting, lint, strict type checking, and all six builds pass.
+Verified on 2026-10-30 with Node 24.22.2: the central migration ran, reverted, and ran again against a disposable database containing all three schemas; it was then registered against the existing database without modifying its data. A subsequent central migration run reports no pending changes. Host-run HTTP checks verified registration 201, login/refresh 200, rotated refresh tokens with reuse rejected as 401, task creation 201, task status DONE, a listed completion notification, and a PUBLISHED outbox row. RBAC checks verified MEMBER assignment/deletion return 403 while ADMIN assignment/deletion return 200/204. Live Swagger JSON includes route schemas, pagination/filter parameters, and the documented login/register response codes. Temporary smoke-test rows were deleted by exact synthetic email. Repository policy, formatting, lint, strict type checking, 37 unit tests, all six builds, and 12 e2e checks for healthy and unavailable readiness states pass.
 
-The host-run flow was the behavior check. The current e2e tests exercise health endpoints only. Compose-hosted API readiness, graceful SIGTERM during active work, broker reconnect/retry/DLQ fault injection, and broad authenticated HTTP e2e matrices remain unverified and are not represented as passing checks.
+The host-run flow was the business behavior check. The current e2e tests exercise health and readiness endpoints only. Compose-hosted API readiness, graceful SIGTERM during active work, broker reconnect/retry/DLQ fault injection, and broad authenticated HTTP e2e matrices remain unverified and are not represented as passing checks.

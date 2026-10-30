@@ -190,7 +190,7 @@ npm run test-e2e
 
 - `apps/` contains the three HTTP applications, the two one-queue workers, and the separate Task outbox publisher.
 - `libs/` contains shared contracts and infrastructure. Shared libraries do not import from applications, and each service imports only its own persistence exports.
-- TypeORM migrations and data sources are separate for User, Task, and Notification schemas. Automatic migration execution and schema synchronization are disabled.
+- Each runtime service configures only its own TypeORM entities. One central migration data source manages all three schemas; automatic migration execution and schema synchronization are disabled.
 - RabbitMQ handles both synchronous user-existence request/reply and asynchronous `task.completed` events. A shared typed `sendToQueue` function routes every outbound message using queue enums and payload types.
 - Pino is the application logger. Correlation IDs are returned in `x-correlation-id` and carried through RabbitMQ message envelopes.
 - CORS uses an explicit origin allow-list. State-changing requests check the origin; cross-site `SameSite=None` cookies are not enabled because a CSRF token flow is outside this assessment.

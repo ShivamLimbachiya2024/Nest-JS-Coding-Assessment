@@ -13,7 +13,7 @@ export class TaskServiceController {
   }
 
   @Get('ready')
-  ready(): Readonly<Record<string, string>> {
+  ready(): Promise<Readonly<Record<string, string>>> {
     return this.taskServiceService.ready()
   }
 }

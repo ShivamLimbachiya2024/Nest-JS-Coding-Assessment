@@ -31,6 +31,7 @@ Do not add parallel or versioned contracts. Update the single current contract a
 
 ## Current contracts
 
+- [TaskFlow service flow](./service-flow.md)
 - [HTTP APIs](./http-apis.md)
 - [Authentication and cookies](./authentication-and-cookies.md)
 - [Errors and pagination](./errors-and-pagination.md)
