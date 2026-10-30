@@ -1,31 +1,80 @@
 # TaskFlow
 
-TaskFlow is a NestJS monorepo with three independently deployable business services. The User Service owns accounts and refresh sessions, the Task Service owns tasks and a transactional event outbox, and the Notification Service owns delivered notifications. PostgreSQL stores each service's data in its own schema. RabbitMQ handles user-existence request/reply and durable task-completion events.
+TaskFlow is a NestJS monorepo assessment project with three independently deployable business services. User Service owns accounts and refresh sessions, Task Service owns tasks and a transactional event outbox, and Notification Service owns persisted notifications. PostgreSQL stores each service's data in a separate schema. RabbitMQ handles user verification requests and task completion events.
 
-## Requirements
+This guide covers a fresh local setup, running the services, and trying the main workflow. It supports Node processes on your machine and Docker containers for the application processes.
 
-- Node.js 24 and npm 10 or newer
-- Docker Desktop or another Docker Engine with Compose
-- The existing PostgreSQL instance on port 5432, or the optional `clean-host` Compose profile
+## What you need
 
-RabbitMQ runs in Docker. On this workstation the PostgreSQL container named `postgres-db` is reused; the TaskFlow Compose file does not start or replace it by default. The application containers connect to the host PostgreSQL instance through `host.docker.internal`.
+- Node.js 24 LTS and npm 10 or newer
+- Docker Desktop or Docker Engine with Docker Compose, with the Docker daemon running
+- Git
+- OpenSSL to generate local JWT secrets, or another secure random generator
 
-## Quick start
+If you use `nvm`, the repository's `.nvmrc` selects Node.js 24. Without `nvm`, install Node.js 24 LTS and verify `node --version` and `npm --version` before continuing.
+
+## Get the project ready
+
+Clone the repository, enter its directory, install the locked dependencies, and make a local environment file:
 
 ```sh
+git clone <repository-url>
+cd <repository-directory>
 nvm use
 npm ci
 cp .env.example .env
 ```
 
-Set distinct random values of at least 32 characters for `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` in `.env`. Then start RabbitMQ and create the TaskFlow database if it does not exist:
+If you installed Node.js without `nvm`, skip `nvm use`. Keep `.env` local; Git ignores it. It contains local database and broker settings as well as secrets.
+
+Generate two different secrets:
+
+```sh
+openssl rand -hex 32
+openssl rand -hex 32
+```
+
+Copy the first value into `JWT_ACCESS_SECRET` and the second into `JWT_REFRESH_SECRET` in `.env`. Each must be at least 32 characters. Do not use the example placeholders as secrets. The checked-in `.env.example` contains development-only database and RabbitMQ credentials; change them if you expose these services beyond your machine.
+
+## Start PostgreSQL and RabbitMQ
+
+Choose one PostgreSQL option. RabbitMQ runs in Docker for both options.
+
+### Option A - Start a local development PostgreSQL container
+
+This is the easiest option on a fresh machine. The `clean-host` profile starts a PostgreSQL 16 container, creates the `taskflow` database, and publishes it on port 5432. The local `.env` defaults match this development database.
+
+```sh
+docker compose --profile clean-host up -d postgres rabbitmq
+docker compose ps
+```
+
+Wait until both containers show as healthy before continuing. The PostgreSQL service uses a named Docker volume, so its data remains when the containers are stopped.
+
+### Option B - Use a PostgreSQL server you already have
+
+Do not start the Compose PostgreSQL container if another server already uses port 5432. Start RabbitMQ and edit the `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, and `DATABASE_NAME` values in `.env` to match your server.
+
+Create an empty database named `taskflow` once, if it does not already exist. For a PostgreSQL installation with `createdb` available, for example:
+
+```sh
+createdb -h localhost -p 5432 -U root taskflow
+```
+
+Change the host or user in that command to match your PostgreSQL setup. If the database already exists, do not create it again.
+
+Start RabbitMQ:
 
 ```sh
 docker compose up -d rabbitmq
-docker exec postgres-db psql -U root -d postgres -c "CREATE DATABASE taskflow"
+docker compose ps
 ```
 
-The database command is only needed once. If `taskflow` already exists, PostgreSQL reports that and leaves it unchanged. Apply each service migration explicitly:
+Wait for RabbitMQ to show as healthy. The management UI is available at `http://localhost:15672`; the development username and password are `taskflow` and `taskflow-dev-password` unless you changed the Compose configuration.
+
+## Create the service schemas
+
+The first run requires the three explicit TypeORM migrations. Run them from the repository root after PostgreSQL is ready:
 
 ```sh
 npm run migration-run-user
@@ -33,59 +82,141 @@ npm run migration-run-task
 npm run migration-run-notification
 ```
 
-Build and run all six processes in separate terminals:
+Each command creates its service-owned schema and tables in the `taskflow` database. `synchronize` is disabled; the application does not create or change database tables automatically.
+
+## Run TaskFlow on your machine
+
+Build the monorepo:
 
 ```sh
 npm run build
-npm run start-user
-npm run start-user-worker
-npm run start-task
-npm run start-task-outbox
-npm run start-notification
-npm run start-notification-worker
 ```
 
-The HTTP APIs listen on ports 3001, 3002, and 3003. Swagger is at `/docs` for each API. Liveness and readiness endpoints are `/health/live` and `/health/ready`. `WORKER_QUEUE` must contain the one queue assigned to the worker process; `.env.example` shows the User Service queue, and the Notification worker uses `taskflow-notification-task-completed`.
+Open six terminals in the repository root and start one process in each terminal:
 
-For containerized application processes, put valid secrets and connection values in `.env`, then run:
+| Terminal | Command                                                                               | Purpose                           |
+| -------- | ------------------------------------------------------------------------------------- | --------------------------------- |
+| 1        | `npm run start-user`                                                                  | User Service HTTP API             |
+| 2        | `npm run start-user-worker`                                                           | User verification RabbitMQ worker |
+| 3        | `npm run start-task`                                                                  | Task Service HTTP API             |
+| 4        | `npm run start-task-outbox`                                                           | Task completion outbox publisher  |
+| 5        | `npm run start-notification`                                                          | Notification Service HTTP API     |
+| 6        | `WORKER_QUEUE=taskflow-notification-task-completed npm run start-notification-worker` | Task completion RabbitMQ worker   |
+
+Each HTTP service has Swagger documentation and health endpoints:
+
+| Service      | Base URL                | Swagger                      | Readiness                            |
+| ------------ | ----------------------- | ---------------------------- | ------------------------------------ |
+| User         | `http://localhost:3001` | `http://localhost:3001/docs` | `http://localhost:3001/health/ready` |
+| Task         | `http://localhost:3002` | `http://localhost:3002/docs` | `http://localhost:3002/health/ready` |
+| Notification | `http://localhost:3003` | `http://localhost:3003/docs` | `http://localhost:3003/health/ready` |
+
+`WORKER_QUEUE` selects the single queue handled by a worker process. The User worker uses the `taskflow-user-verification` value in `.env`. Set `WORKER_QUEUE=taskflow-notification-task-completed` in the Notification worker's terminal as shown above.
+
+## Run the application processes in Docker
+
+Start PostgreSQL and RabbitMQ first using Option A above, or make an existing PostgreSQL server available on the host. Apply the migrations from your machine as described above, then start the six application processes in Docker:
 
 ```sh
-docker compose up --build
+docker compose up --build -d
+docker compose ps
 ```
 
-The optional Compose PostgreSQL service is only for a clean host and is not enabled by default. Do not enable it alongside the existing `postgres-db` on port 5432.
+The Compose application containers connect to PostgreSQL through `host.docker.internal` and to RabbitMQ through the Compose network. This setup is intended for Docker Desktop. On a native Linux Docker Engine, configure the host gateway in your local Compose setup if `host.docker.internal` does not resolve.
 
-## Service flow
+The APIs use ports 3001, 3002, and 3003. RabbitMQ uses ports 5672 and 15672. If any of those ports are already in use, stop the conflicting process or update the Compose port mapping and matching `.env` values.
 
-Register or log in through User Service. Login sets `taskflow_access_token` and `taskflow_refresh_token` as HttpOnly cookies. Use the access cookie with Task and Notification APIs. Task creation verifies the assignee over RabbitMQ before writing. A real status transition into `DONE` stores a completion event in the Task Service outbox in the same database transaction; the outbox process publishes it with publisher confirmation. The Notification worker validates and stores the event idempotently before acknowledging it. Notification listing scopes results to the authenticated principal.
+Stop the Compose containers while preserving their named volumes and data:
 
-Public registration permits either `ADMIN` or `MEMBER` because the assessment contract requires it. A production product would restrict administrator provisioning. Delivery is at least once; unique source-message handling prevents duplicate notification rows, and exactly-once delivery is not claimed.
+```sh
+docker compose down
+```
 
-## Architecture and operations
+## Try the main workflow
 
-- `apps/` contains three HTTP apps, two one-queue workers, and the separate Task outbox publisher.
-- `libs/` contains shared contracts and infrastructure. No shared library imports an app, and each service imports only its own persistence exports.
-- TypeORM synchronization and automatic migration execution are disabled. Each service has a separate data source, schema, and migration history.
-- RabbitMQ topology and payload validation live in `libs/rabbitmq` and `libs/contracts`. Retry queues are bounded and terminal failures reach a dead-letter queue.
-- Pino emits safe string-first operation stories. Correlation IDs are returned in `x-correlation-id` and propagated in message envelopes.
-- CORS uses the explicit `CORS_ORIGINS` list. State-changing cookie-authenticated requests require an allowed `Origin`; `SameSite=None` is not configured.
+Cookie-authenticated state-changing requests require an allowed `Origin`. The local example permits `http://localhost:3000`; include it in calls made with `curl` or another API client.
 
-See the [implementation plans](./docs/plans/README.md) and [API/message contracts](./docs/contracts/README.md) for detailed behavior and acceptance status.
+Register an ADMIN account:
 
-## Checks
+```sh
+curl -i http://localhost:3001/users/register \
+  -H 'Origin: http://localhost:3000' \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"TaskFlow Admin","email":"admin@example.test","password":"ChangeThis-Password-123!","role":"ADMIN"}'
+```
+
+Copy the returned user `id` into `USER_ID` below, then log in and save the cookies:
+
+```sh
+curl -i -c cookies.txt http://localhost:3001/users/login \
+  -H 'Origin: http://localhost:3000' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.test","password":"ChangeThis-Password-123!"}'
+```
+
+Create a task assigned to that user's ID. The Task Service checks that the user exists through RabbitMQ before inserting the task:
+
+```sh
+USER_ID='paste-user-id-here'
+curl -i -b cookies.txt http://localhost:3002/tasks \
+  -H 'Origin: http://localhost:3000' \
+  -H 'Content-Type: application/json' \
+  -d "{\"title\":\"Review TaskFlow\",\"assignedUserId\":\"${USER_ID}\"}"
+```
+
+Copy the returned task `id` into `TASK_ID` and transition it to `DONE`:
+
+```sh
+TASK_ID='paste-task-id-here'
+curl -i -b cookies.txt "http://localhost:3002/tasks/${TASK_ID}/status" \
+  -X PATCH \
+  -H 'Origin: http://localhost:3000' \
+  -H 'Content-Type: application/json' \
+  -d '{"status":"DONE"}'
+```
+
+The Task Service writes the completion event to its outbox with the status change. The outbox publisher sends the event to RabbitMQ, and the Notification worker stores it. List notifications for the logged-in user:
+
+```sh
+curl -b cookies.txt http://localhost:3003/notifications
+```
+
+`cookies.txt` contains authentication credentials. Keep it local and delete it when finished.
+
+## Configuration and security notes
+
+- `.env.example` lists all required configuration keys. `.env` is the local working copy and is ignored by Git.
+- Use separate `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` values. User Service signs refresh tokens; all three HTTP services verify access tokens.
+- Browser clients must use credentialed requests and an origin listed in `CORS_ORIGINS`. Keep the allow-list explicit.
+- Public registration accepts `ADMIN` because the assessment requires it. A production system would normally restrict administrator creation.
+- Passwords are Argon2-hashed. Refresh tokens are rotated and stored only as hashes. Authentication tokens are sent in HttpOnly cookies.
+- RabbitMQ delivery is at least once. Outbox publishing and notification idempotency protect against message loss and duplicates; the system does not claim exactly-once delivery.
+
+## Verify changes locally
+
+Run the repository checks after installing dependencies and starting the required local PostgreSQL and RabbitMQ services:
 
 ```sh
 npm run verify
 npm run test-e2e
 ```
 
-The e2e suite uses the configured local PostgreSQL and RabbitMQ services. The architecture policy check enforces service ownership, no automatic synchronization, no object-first story logging, and colon-free npm script names.
+`npm run verify` runs repository policy checks, formatting, lint, strict TypeScript checking, Jest tests, and builds all six Nest processes. The e2e suite requires the local services described above.
 
-GitHub Actions runs the policy, format, lint, strict type, unit, migration up/down/re-up, HTTP readiness e2e, production dependency audit, all-process build, and container image build checks on pushes and pull requests.
+## Architecture and trade-offs
 
-## Scaffolding commands
+- `apps/` contains the three HTTP applications, the two one-queue workers, and the separate Task outbox publisher.
+- `libs/` contains shared contracts and infrastructure. Shared libraries do not import from applications, and each service imports only its own persistence exports.
+- TypeORM migrations and data sources are separate for User, Task, and Notification schemas. Automatic migration execution and schema synchronization are disabled.
+- RabbitMQ handles both synchronous user-existence request/reply and asynchronous task-completed events. A shared typed `sendToQueue` function routes every outbound message using queue enums and payload types.
+- Pino is the application logger. Correlation IDs are returned in `x-correlation-id` and carried through RabbitMQ message envelopes.
+- CORS uses an explicit origin allow-list. State-changing requests check the origin; cross-site `SameSite=None` cookies are not enabled because a CSRF token flow is outside this assessment.
 
-The workspace and source artifacts were produced with Nest CLI 12.0.11 and its Nest schematics. These commands document the application and library generation shape; application and library project names are `user-service`, `task-service`, `notification-service`, `auth`, `common`, `config`, `contracts`, `database`, `logger`, and `rabbitmq`.
+See [implementation plans](./docs/plans/README.md) and [API/message contracts](./docs/contracts/README.md) for the detailed design and service contracts.
+
+## Scaffolding reference
+
+The workspace and source artifacts were generated with Nest CLI 12.0.11 and its Nest schematics. These commands document the application and library generation shape; the project names are `user-service`, `task-service`, `notification-service`, `auth`, `common`, `config`, `contracts`, `database`, `logger`, and `rabbitmq`.
 
 ```sh
 export TASKFLOW_SCAFFOLD_DIR="$(mktemp -d)"
@@ -102,7 +233,7 @@ npx nest generate library logger --prefix @taskflow
 npx nest generate library rabbitmq --prefix @taskflow
 ```
 
-Feature modules, controllers, services, DTOs, guards, middleware, interceptors, filters, decorators, entities, workers, and the outbox entry point were generated with their corresponding Nest CLI schematics. TypeORM migrations are generated and run only through the service-specific npm scripts above. The exact migration generation commands are:
+Feature modules and providers were generated with their corresponding Nest CLI schematics. TypeORM migrations are generated and run only through the service-specific npm scripts. The migration generation commands are:
 
 ```sh
 npm run migration-generate-user

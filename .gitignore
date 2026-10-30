@@ -2,6 +2,7 @@ node_modules/
 dist/
 coverage/
 .env
+cookies.txt
 *.log
 .DS_Store
 tmp/
