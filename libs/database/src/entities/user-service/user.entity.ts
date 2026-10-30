@@ -1,4 +1,4 @@
-import { UserRole } from '@taskflow/contracts'
+import { UserRole } from '../../../../contracts/src/index.js'
 import {
   Column,
   CreateDateColumn,

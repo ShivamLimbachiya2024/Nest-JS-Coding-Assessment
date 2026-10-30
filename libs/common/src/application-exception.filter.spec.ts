@@ -1,7 +1,7 @@
-import { ApplicationExceptionFilter } from './application-exception.filter.js';
+import { ApplicationExceptionFilter } from './application-exception.filter.js'
 
 describe('ApplicationExceptionFilter', () => {
   it('should be defined', () => {
-    expect(new ApplicationExceptionFilter()).toBeDefined();
-  });
-});
+    expect(new ApplicationExceptionFilter()).toBeDefined()
+  })
+})

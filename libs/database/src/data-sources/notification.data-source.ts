@@ -1,10 +1,10 @@
 import 'dotenv/config'
-import { TaskflowConfigService } from '@taskflow/config'
+import { TaskflowConfigService } from '../../../config/src/config.service.js'
 import { DataSource } from 'typeorm'
 import { DatabaseService } from '../database.service.js'
 import { NotificationEntity } from '../entities/notification-service/index.js'
 
-export const notificationDataSource = new DataSource(
+const notificationDataSource = new DataSource(
   DatabaseService.options(
     new TaskflowConfigService(),
     'notifications',

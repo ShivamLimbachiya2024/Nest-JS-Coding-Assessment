@@ -35,8 +35,10 @@ Every endpoint, message flow, migration, worker queue restriction, error mapping
 
 - [x] Assessment and reference conventions inspected
 - [x] Architecture and public contracts documented
-- [ ] Foundation implemented and verified
-- [ ] User Service implemented and verified
-- [ ] Task Service implemented and verified
-- [ ] Notification Service implemented and verified
-- [ ] Full delivery verification completed
+- [x] Foundation implemented and verified
+- [x] User Service implemented and verified
+- [x] Task Service implemented and verified
+- [x] Notification Service implemented and verified
+- [x] Full delivery verification completed
+
+The full verification report and the checks exercised are recorded in [verification and delivery](./taskflow-verification-and-delivery.md). Docker app images built and all six Compose processes reached running state while the three HTTP readiness endpoints returned `ready`.

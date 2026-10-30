@@ -1,4 +1,4 @@
-import { TaskStatus } from '@taskflow/contracts'
+import { TaskStatus } from '../../../../contracts/src/index.js'
 import {
   Column,
   CreateDateColumn,
@@ -19,7 +19,7 @@ export class TaskEntity {
   @Column({ length: 150 })
   declare title: string
 
-  @Column({ length: 1000, nullable: true })
+  @Column({ type: 'varchar', length: 1000, nullable: true })
   declare description: string | null
 
   @Column({

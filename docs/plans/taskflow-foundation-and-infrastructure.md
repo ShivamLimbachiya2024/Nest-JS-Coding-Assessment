@@ -12,7 +12,7 @@ The platform libraries own reusable transport and runtime mechanics only. Featur
 
 ## Generation commands
 
-Run a dry run before each new app or library. The successful commands are recorded verbatim in the root README. Planned schematics are Nest CLI `new`, `generate app`, `generate library`, and focused module/provider/controller/guard/filter/interceptor/middleware/decorator/class schematics.
+The user waived dry-run previews for scaffolding. Apps, libraries, and feature artifacts were generated through Nest CLI 12.0.11 and the matching schematics. Reproduction commands and generated project names are recorded in the root README. The migration exception remains TypeORM CLI only.
 
 ## Contracts, failures, and security
 
@@ -34,6 +34,8 @@ The main risks are configuration drift and broker recovery ambiguity; typed conf
 
 ## Completion state
 
-- [ ] CLI workspace generated
-- [ ] Shared platform implemented
-- [ ] Infrastructure and policy checks verified
+- [x] CLI workspace generated
+- [x] Shared platform implemented
+- [x] Infrastructure and policy checks verified
+
+Verification run on 2026-10-30 includes strict type checking, lint, formatting, all six builds, 31 unit tests, policy checks, healthy RabbitMQ and existing PostgreSQL containers, and Docker Compose readiness for all three HTTP apps and both workers plus the outbox process.

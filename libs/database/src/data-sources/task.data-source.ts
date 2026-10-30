@@ -1,10 +1,13 @@
 import 'dotenv/config'
-import { TaskflowConfigService } from '@taskflow/config'
+import { TaskflowConfigService } from '../../../config/src/config.service.js'
 import { DataSource } from 'typeorm'
 import { DatabaseService } from '../database.service.js'
-import { OutboxMessageEntity, TaskEntity } from '../entities/task-service/index.js'
+import {
+  OutboxMessageEntity,
+  TaskEntity,
+} from '../entities/task-service/index.js'
 
-export const taskDataSource = new DataSource(
+const taskDataSource = new DataSource(
   DatabaseService.options(
     new TaskflowConfigService(),
     'tasks',

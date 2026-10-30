@@ -11,9 +11,8 @@ export class CorrelationMiddleware implements NestMiddleware {
 
   use(request: Request, response: Response, next: NextFunction): void {
     const candidate = request.headers['x-correlation-id']
-    const correlationId = isString(candidate) && isUUID(candidate)
-      ? candidate
-      : randomUUID()
+    const correlationId =
+      isString(candidate) && isUUID(candidate) ? candidate : randomUUID()
 
     response.setHeader('x-correlation-id', correlationId)
     this.context.run(correlationId, next)

@@ -1,12 +1,21 @@
-import { Controller, Get } from '@nestjs/common';
-import { NotificationServiceService } from './notification-service.service.js';
+import { Controller, Get } from '@nestjs/common'
+import { ApiExcludeController } from '@nestjs/swagger'
+import { NotificationServiceService } from './notification-service.service.js'
 
-@Controller()
+@Controller('health')
+@ApiExcludeController()
 export class NotificationServiceController {
-  constructor(private readonly notificationServiceService: NotificationServiceService) {}
+  constructor(
+    private readonly notificationServiceService: NotificationServiceService,
+  ) {}
 
-  @Get()
-  getHello(): string {
-    return this.notificationServiceService.getHello();
+  @Get('live')
+  live(): Readonly<Record<string, string>> {
+    return this.notificationServiceService.live()
+  }
+
+  @Get('ready')
+  ready(): Readonly<Record<string, string>> {
+    return this.notificationServiceService.ready()
   }
 }

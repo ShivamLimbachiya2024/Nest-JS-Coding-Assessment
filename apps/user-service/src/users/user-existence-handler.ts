@@ -43,7 +43,7 @@ export class UserExistenceHandler {
       throw new Error('User verification reply metadata is missing')
     }
 
-    await this.rabbitmq.reply(replyTo, correlationId, replyEnvelope)
+    await this.rabbitmq.reply(correlationId, replyTo, replyEnvelope)
     this.logger.info(
       `User verification reply confirmed correlationId=${envelope.correlationId} operation=verify-user outcome=completed messageId=${envelope.messageId} userId=${request.userId} exists=${exists}`,
     )

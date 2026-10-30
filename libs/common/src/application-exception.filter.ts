@@ -35,9 +35,8 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     const mapped = this.map(exception)
 
     if (mapped.status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      const errorType = exception instanceof Error
-        ? exception.name
-        : 'UnknownFailure'
+      const errorType =
+        exception instanceof Error ? exception.name : 'UnknownFailure'
       this.logger.error(
         `HTTP operation failed correlationId=${this.context.correlationId} operation=${request.method}-${request.path} outcome=failed errorType=${errorType} errorCode=${mapped.code}`,
       )
@@ -68,9 +67,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const status = exception.getStatus()
       return {
-        code: status === HttpStatus.BAD_REQUEST
-          ? ErrorCode.VALIDATION_FAILED
-          : ErrorCode.INTERNAL_ERROR,
+        code: this.httpErrorCode(status),
         status,
         message: exception.message,
       }
@@ -80,6 +77,27 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
       code: ErrorCode.INTERNAL_ERROR,
       status: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'An unexpected server error occurred',
+    }
+  }
+
+  private httpErrorCode(status: number): ErrorCode {
+    switch (status) {
+      case HttpStatus.BAD_REQUEST:
+        return ErrorCode.VALIDATION_FAILED
+      case HttpStatus.UNAUTHORIZED:
+        return ErrorCode.AUTHENTICATION_REQUIRED
+      case HttpStatus.FORBIDDEN:
+        return ErrorCode.AUTHORIZATION_DENIED
+      case HttpStatus.NOT_FOUND:
+        return ErrorCode.NOT_FOUND
+      case HttpStatus.CONFLICT:
+        return ErrorCode.CONFLICT
+      case HttpStatus.SERVICE_UNAVAILABLE:
+        return ErrorCode.DEPENDENCY_FAILURE
+      case HttpStatus.GATEWAY_TIMEOUT:
+        return ErrorCode.USER_VERIFICATION_TIMEOUT
+      default:
+        return ErrorCode.INTERNAL_ERROR
     }
   }
 }

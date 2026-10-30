@@ -1,7 +1,7 @@
-import { AccessAuthGuard } from './access-auth.guard.js';
+import { AccessAuthGuard } from './access-auth.guard.js'
 
 describe('AccessAuthGuard', () => {
   it('should be defined', () => {
-    expect(new AccessAuthGuard()).toBeDefined();
-  });
-});
+    expect(new AccessAuthGuard()).toBeDefined()
+  })
+})

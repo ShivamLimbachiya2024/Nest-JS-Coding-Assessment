@@ -1,7 +1,7 @@
-import { RequestLoggingInterceptor } from './request-logging.interceptor.js';
+import { RequestLoggingInterceptor } from './request-logging.interceptor.js'
 
 describe('RequestLoggingInterceptor', () => {
   it('should be defined', () => {
-    expect(new RequestLoggingInterceptor()).toBeDefined();
-  });
-});
+    expect(new RequestLoggingInterceptor()).toBeDefined()
+  })
+})

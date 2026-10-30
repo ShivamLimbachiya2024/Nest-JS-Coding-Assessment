@@ -13,19 +13,21 @@ import {
 
 @Injectable()
 export class ContractsService {
-  createEnvelope<TPayload>(
-    messageType: MessageType,
+  createEnvelope<TPayload, TMessageType extends MessageType>(
+    messageType: TMessageType,
     producer: string,
     correlationId: string,
     payload: TPayload,
-    messageId = randomUUID(),
-  ): MessageEnvelope<TPayload> {
-    const envelope = new MessageEnvelope<TPayload>()
+    messageId: string = randomUUID(),
+    occurredAt: string = new Date().toISOString(),
+  ): MessageEnvelope<TPayload, TMessageType> {
+    const envelope = new MessageEnvelope<TPayload, TMessageType>()
+    envelope.version = 1
     envelope.messageId = messageId
     envelope.correlationId = correlationId
     envelope.messageType = messageType
     envelope.producer = producer
-    envelope.occurredAt = new Date().toISOString()
+    envelope.occurredAt = occurredAt
     envelope.payload = payload
     return envelope
   }
@@ -46,15 +48,16 @@ export class ContractsService {
     return this.parse(TaskCompleted, value)
   }
 
-  private parse<T extends object>(
-    contract: new () => T,
-    value: unknown,
-  ): T {
+  private parse<T extends object>(contract: new () => T, value: unknown): T {
     const parsed = plainToInstance(contract, value, {
       excludeExtraneousValues: true,
     })
 
-    if (!isEmpty(validateSync(parsed, { whitelist: true, forbidNonWhitelisted: true }))) {
+    if (
+      !isEmpty(
+        validateSync(parsed, { whitelist: true, forbidNonWhitelisted: true }),
+      )
+    ) {
       throw new Error('Message contract validation failed')
     }
 

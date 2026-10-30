@@ -10,6 +10,7 @@ import { UserEntity } from '@taskflow/database/user-service'
 import toLower from 'lodash/toLower.js'
 import trim from 'lodash/trim.js'
 import map from 'lodash/map.js'
+import get from 'lodash/get.js'
 import { QueryFailedError, Repository } from 'typeorm'
 import { UserQueryDto } from './dto/user-query.dto.js'
 import { UserResponseDto } from './dto/user-response.dto.js'
@@ -37,7 +38,12 @@ export class UsersService {
       const saved = await this.users.save(user)
       return new UserResponseDto(saved)
     } catch (error: unknown) {
-      if (error instanceof QueryFailedError) {
+      const driverCode: unknown =
+        error instanceof QueryFailedError
+          ? get(error.driverError, 'code')
+          : undefined
+
+      if (driverCode === '23505') {
         throw new ApplicationError(
           ErrorCode.EMAIL_CONFLICT,
           HttpStatus.CONFLICT,
@@ -71,7 +77,9 @@ export class UsersService {
     return new UserResponseDto(user)
   }
 
-  async list(query: UserQueryDto): Promise<PaginationResponse<UserResponseDto>> {
+  async list(
+    query: UserQueryDto,
+  ): Promise<PaginationResponse<UserResponseDto>> {
     const [users, total] = await this.users.findAndCount({
       order: { createdAt: 'DESC', id: 'ASC' },
       skip: (query.page - 1) * query.pageSize,

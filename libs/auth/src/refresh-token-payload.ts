@@ -1,6 +1,6 @@
 import { TokenType } from '@taskflow/contracts'
 import { Expose } from 'class-transformer'
-import { IsEnum, IsUUID } from 'class-validator'
+import { IsEnum, IsInt, IsUUID } from 'class-validator'
 
 export class RefreshTokenPayload {
   @Expose()
@@ -22,4 +22,12 @@ export class RefreshTokenPayload {
   @Expose()
   @IsEnum(TokenType)
   declare type: TokenType.REFRESH
+
+  @Expose()
+  @IsInt()
+  declare iat: number
+
+  @Expose()
+  @IsInt()
+  declare exp: number
 }

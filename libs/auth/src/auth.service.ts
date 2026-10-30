@@ -18,17 +18,23 @@ export class AuthService {
 
   async verifyAccessToken(token: string): Promise<AccessTokenPayload> {
     try {
-      const decoded = await this.jwt.verifyAsync<Record<string, unknown>>(token, {
-        secret: this.config.accessTokenSecret,
-        algorithms: ['HS256'],
-        issuer: this.config.jwtIssuer,
-        audience: this.config.jwtAudience,
-      })
+      const decoded = await this.jwt.verifyAsync<Record<string, unknown>>(
+        token,
+        {
+          secret: this.config.accessTokenSecret,
+          algorithms: ['HS256'],
+          issuer: this.config.jwtIssuer,
+          audience: this.config.jwtAudience,
+        },
+      )
       const payload = plainToInstance(AccessTokenPayload, decoded, {
         excludeExtraneousValues: true,
       })
 
-      if (!isEmpty(validateSync(payload)) || payload.type !== TokenType.ACCESS) {
+      if (
+        !isEmpty(validateSync(payload)) ||
+        payload.type !== TokenType.ACCESS
+      ) {
         throw new Error('Access token claims failed validation')
       }
 
@@ -44,17 +50,23 @@ export class AuthService {
 
   async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
     try {
-      const decoded = await this.jwt.verifyAsync<Record<string, unknown>>(token, {
-        secret: this.config.refreshTokenSecret,
-        algorithms: ['HS256'],
-        issuer: this.config.jwtIssuer,
-        audience: this.config.jwtAudience,
-      })
+      const decoded = await this.jwt.verifyAsync<Record<string, unknown>>(
+        token,
+        {
+          secret: this.config.refreshTokenSecret,
+          algorithms: ['HS256'],
+          issuer: this.config.jwtIssuer,
+          audience: this.config.jwtAudience,
+        },
+      )
       const payload = plainToInstance(RefreshTokenPayload, decoded, {
         excludeExtraneousValues: true,
       })
 
-      if (!isEmpty(validateSync(payload)) || payload.type !== TokenType.REFRESH) {
+      if (
+        !isEmpty(validateSync(payload)) ||
+        payload.type !== TokenType.REFRESH
+      ) {
         throw new Error('Refresh token claims failed validation')
       }
 

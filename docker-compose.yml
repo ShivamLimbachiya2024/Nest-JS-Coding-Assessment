@@ -1,0 +1,129 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.3.7-management
+    environment:
+      RABBITMQ_DEFAULT_USER: taskflow
+      RABBITMQ_DEFAULT_PASS: taskflow-dev-password
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - taskflow-rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  postgres:
+    image: postgres:16
+    profiles: ['clean-host']
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: taskflow
+    ports:
+      - '5432:5432'
+    volumes:
+      - taskflow-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U root -d taskflow']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  user-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ['npm', 'run', 'start-user']
+    env_file: .env
+    environment:
+      SERVICE_NAME: user-service
+      DATABASE_HOST: host.docker.internal
+      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+    ports:
+      - '3001:3001'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  task-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ['npm', 'run', 'start-task']
+    env_file: .env
+    environment:
+      SERVICE_NAME: task-service
+      DATABASE_HOST: host.docker.internal
+      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+    ports:
+      - '3002:3002'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ['npm', 'run', 'start-notification']
+    env_file: .env
+    environment:
+      SERVICE_NAME: notification-service
+      DATABASE_HOST: host.docker.internal
+      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+    ports:
+      - '3003:3003'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  user-verification-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ['npm', 'run', 'start-user-worker']
+    env_file: .env
+    environment:
+      SERVICE_NAME: user-verification-worker
+      DATABASE_HOST: host.docker.internal
+      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+      WORKER_QUEUE: taskflow-user-verification
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  notification-task-completed-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ['npm', 'run', 'start-notification-worker']
+    env_file: .env
+    environment:
+      SERVICE_NAME: notification-task-completed-worker
+      DATABASE_HOST: host.docker.internal
+      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+      WORKER_QUEUE: taskflow-notification-task-completed
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  task-outbox-publisher:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ['npm', 'run', 'start-task-outbox']
+    env_file: .env
+    environment:
+      SERVICE_NAME: task-outbox-publisher
+      DATABASE_HOST: host.docker.internal
+      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  taskflow-postgres-data:
+  taskflow-rabbitmq-data:

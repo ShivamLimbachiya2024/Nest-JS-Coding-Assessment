@@ -1,10 +1,13 @@
 import 'dotenv/config'
-import { TaskflowConfigService } from '@taskflow/config'
+import { TaskflowConfigService } from '../../../config/src/config.service.js'
 import { DataSource } from 'typeorm'
 import { DatabaseService } from '../database.service.js'
-import { RefreshSessionEntity, UserEntity } from '../entities/user-service/index.js'
+import {
+  RefreshSessionEntity,
+  UserEntity,
+} from '../entities/user-service/index.js'
 
-export const userDataSource = new DataSource(
+const userDataSource = new DataSource(
   DatabaseService.options(
     new TaskflowConfigService(),
     'users',

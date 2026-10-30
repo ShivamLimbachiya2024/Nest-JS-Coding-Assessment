@@ -4,7 +4,7 @@
   "defaultLibraryPrefix": "@taskflow",
   "sourceRoot": "apps/user-service/src",
   "compilerOptions": {
-    "deleteOutDir": true,
+    "deleteOutDir": false,
     "builder": "rspack",
     "tsConfigPath": "apps/user-service/tsconfig.app.json"
   },

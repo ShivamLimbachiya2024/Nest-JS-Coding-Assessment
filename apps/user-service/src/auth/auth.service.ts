@@ -1,11 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
-import {
-  ApplicationError,
-  ErrorCode,
-  RequestContext,
-} from '@taskflow/common'
+import { ApplicationError, ErrorCode, RequestContext } from '@taskflow/common'
 import { TaskflowConfigService } from '@taskflow/config'
 import { TokenType } from '@taskflow/contracts'
 import {
@@ -87,7 +83,9 @@ export class AuthService {
       userId: user.id,
       familyId,
       tokenHash: this.hashToken(issued.refreshToken),
-      expiresAt: new Date(Date.now() + this.config.refreshTokenTtlSeconds * 1000),
+      expiresAt: new Date(
+        Date.now() + this.config.refreshTokenTtlSeconds * 1000,
+      ),
       revokedAt: null,
       replacedBySessionId: null,
     })
@@ -123,10 +121,10 @@ export class AuthService {
       })
 
       if (
-        session === null
-        || session.revokedAt !== null
-        || session.expiresAt <= new Date()
-        || !this.hashesMatch(session.tokenHash, presentedHash)
+        session === null ||
+        session.revokedAt !== null ||
+        session.expiresAt <= new Date() ||
+        !this.hashesMatch(session.tokenHash, presentedHash)
       ) {
         await sessionRepository.update(
           { familyId: payload.familyId },

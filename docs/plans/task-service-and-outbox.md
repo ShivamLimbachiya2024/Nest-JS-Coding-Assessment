@@ -22,6 +22,8 @@ Tests cover all role branches, pagination/filter bounds, verification outcomes a
 
 ## Completion state
 
-- [ ] Source generated through verified schematics
-- [ ] Migrations generated and reviewed
-- [ ] HTTP, RPC, transaction, and outbox behavior verified
+- [x] Source generated through Nest CLI schematics
+- [x] Migrations generated, reviewed, and exercised through up/down/re-up
+- [x] HTTP, RPC, transaction, and outbox behavior verified
+
+The end-to-end smoke run created a task after a confirmed user-existence reply, transitioned it into `DONE`, and observed the outbox row reach `PUBLISHED`. Strict type/build checks and the automated suite passed on 2026-10-30.

@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+.git
+.env
+*.log
+Backend_Developer_Live_Task.pdf

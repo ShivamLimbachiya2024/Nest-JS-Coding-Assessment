@@ -1,6 +1,13 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { TaskflowConfigService } from '@taskflow/config'
-import { MessageEnvelope, WorkerQueue } from '@taskflow/contracts'
+import { WorkerQueue } from '@taskflow/contracts'
+import type {
+  ConsumerQueue,
+  MessageEnvelope,
+  MessageType,
+  UserExistenceRequest,
+  UserExistenceResponse,
+} from '@taskflow/contracts'
 import { StoryLogger } from '@taskflow/logger'
 import {
   AmqpConnectionManager,
@@ -8,18 +15,22 @@ import {
   ChannelWrapper,
   connect,
 } from 'amqp-connection-manager'
-import { ConsumeMessage } from 'amqplib'
+import type { ConsumeMessage, Options } from 'amqplib'
 import get from 'lodash/get.js'
+import isFinite from 'lodash/isFinite.js'
 import isNumber from 'lodash/isNumber.js'
 import toNumber from 'lodash/toNumber.js'
 import { MessageProcessingError } from './message-processing-error.js'
 import {
+  assertNever,
   ExchangeName,
-  InternalQueue,
   MAX_MESSAGE_BYTES,
   MAX_NOTIFICATION_ATTEMPTS,
+  QueueSendCommand,
   RabbitErrorCode,
+  QueueRouteKind,
   RoutingKey,
+  resolveQueueRoute,
 } from './topology.js'
 
 interface PendingReply {
@@ -38,6 +49,9 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
   private connection: AmqpConnectionManager | undefined
   private channel: ChannelWrapper | undefined
   private readonly pendingReplies = new Map<string, PendingReply>()
+  private replyConsumerReady = false
+  private replyConsumerSetup: Promise<void> | undefined
+  private replyQueue: string | undefined
 
   constructor(
     private readonly config: TaskflowConfigService,
@@ -61,90 +75,124 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     })
     await this.connection.connect({ timeout: 5_000 })
     await this.channel.waitForConnect()
-    await this.channel.consume(
-      'amq.rabbitmq.reply-to',
-      (message) => this.receiveReply(message),
-      { noAck: true },
-    )
   }
 
-  async publish<TPayload>(
-    exchange: ExchangeName,
-    routingKey: RoutingKey,
-    envelope: MessageEnvelope<TPayload>,
-  ): Promise<void> {
-    const content = this.encode(envelope)
-    await this.getChannel().publish(exchange, routingKey, content, {
+  async sendToQueue(command: QueueSendCommand): Promise<void> {
+    const { queue, payload } = command
+    const content = this.encodePayload(payload)
+    const envelope = Buffer.isBuffer(payload) ? undefined : payload
+    const options: Options.Publish = {
       contentType: 'application/json',
       deliveryMode: 2,
-      messageId: envelope.messageId,
-      correlationId: envelope.correlationId,
+      messageId: envelope?.messageId,
+      correlationId: envelope?.correlationId,
       timestamp: Date.now(),
-    })
+      ...command.options,
+    }
+    const channel = this.getChannel()
+
+    const route = resolveQueueRoute(queue)
+
+    switch (route.kind) {
+      case QueueRouteKind.DIRECT:
+        await channel.sendToQueue(
+          command.options?.replyTo ?? route.queue,
+          content,
+          options,
+        )
+        return
+      case QueueRouteKind.EXCHANGE:
+        await channel.publish(
+          route.exchange,
+          route.routingKey,
+          content,
+          options,
+        )
+        return
+      default:
+        return assertNever(route)
+    }
   }
 
-  request<TPayload>(
-    routingKey: RoutingKey,
-    envelope: MessageEnvelope<TPayload>,
+  async request(
+    queue: WorkerQueue.USER_VERIFICATION,
+    envelope: MessageEnvelope<
+      UserExistenceRequest,
+      MessageType.USERS_EXISTS_REQUEST
+    >,
     timeoutMs: number,
   ): Promise<unknown> {
-    const channel = this.getChannel()
-    const content = this.encode(envelope)
+    await this.ensureReplyConsumer()
+    const replyQueue = this.replyQueue
+
+    if (replyQueue === undefined) {
+      throw new Error('RabbitMQ reply queue is not initialized')
+    }
 
     return new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingReplies.delete(envelope.messageId)
-        reject(new MessageProcessingError(
-          'RabbitMQ request timed out',
-          true,
-          RabbitErrorCode.REQUEST_TIMEOUT,
-        ))
+        reject(
+          new MessageProcessingError(
+            'RabbitMQ request timed out',
+            true,
+            RabbitErrorCode.REQUEST_TIMEOUT,
+          ),
+        )
       }, timeoutMs)
       this.pendingReplies.set(envelope.messageId, { resolve, reject, timeout })
 
-      void channel.publish(ExchangeName.RPC, routingKey, content, {
-        contentType: 'application/json',
-        deliveryMode: 2,
-        messageId: envelope.messageId,
-        correlationId: envelope.messageId,
-        replyTo: 'amq.rabbitmq.reply-to',
-        timestamp: Date.now(),
+      void this.sendToQueue({
+        queue,
+        payload: envelope,
+        options: {
+          correlationId: envelope.messageId,
+          replyTo: replyQueue,
+        },
       }).catch((error: unknown) => {
         clearTimeout(timeout)
         this.pendingReplies.delete(envelope.messageId)
-        reject(new MessageProcessingError(
-          error instanceof Error ? error.message : 'RabbitMQ publish failed',
-          true,
-          RabbitErrorCode.BROKER_UNAVAILABLE,
-        ))
+        reject(
+          new MessageProcessingError(
+            error instanceof Error ? error.message : 'RabbitMQ publish failed',
+            true,
+            RabbitErrorCode.BROKER_UNAVAILABLE,
+          ),
+        )
       })
     })
   }
 
   async reply(
-    queue: string,
     correlationId: string,
-    message: unknown,
+    replyTo: string,
+    message: MessageEnvelope<
+      UserExistenceResponse,
+      MessageType.USERS_EXISTS_RESPONSE
+    >,
   ): Promise<void> {
-    await this.getChannel().sendToQueue(queue, this.encode(message), {
-      contentType: 'application/json',
-      correlationId,
-      deliveryMode: 2,
+    await this.sendToQueue({
+      queue: WorkerQueue.RPC_REPLY,
+      payload: message,
+      options: { correlationId, replyTo },
     })
   }
 
   async consume(
-    queue: WorkerQueue,
+    queue: ConsumerQueue,
     prefetch: number,
     handler: MessageHandler,
   ): Promise<void> {
-    await this.getChannel().consume(
-      queue,
-      (message) => {
-        void this.processDelivery(message, handler)
-      },
-      { noAck: false, prefetch },
-    )
+    await this.getChannel().addSetup(async (channel: Channel) => {
+      await channel.prefetch(prefetch)
+      await channel.consume(
+        queue,
+        (message: ConsumeMessage | null) => {
+          void this.processDelivery(message, handler)
+        },
+        { noAck: false },
+      )
+    })
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -175,25 +223,25 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       channel.assertQueue(WorkerQueue.NOTIFICATION_TASK_COMPLETED, {
         durable: true,
       }),
-      channel.assertQueue(InternalQueue.NOTIFICATION_RETRY_ONE, {
+      channel.assertQueue(WorkerQueue.NOTIFICATION_RETRY_ONE, {
         durable: true,
         deadLetterExchange: ExchangeName.EVENTS,
         deadLetterRoutingKey: RoutingKey.TASK_COMPLETED,
         messageTtl: 1_000,
       }),
-      channel.assertQueue(InternalQueue.NOTIFICATION_RETRY_TWO, {
+      channel.assertQueue(WorkerQueue.NOTIFICATION_RETRY_TWO, {
         durable: true,
         deadLetterExchange: ExchangeName.EVENTS,
         deadLetterRoutingKey: RoutingKey.TASK_COMPLETED,
         messageTtl: 5_000,
       }),
-      channel.assertQueue(InternalQueue.NOTIFICATION_RETRY_THREE, {
+      channel.assertQueue(WorkerQueue.NOTIFICATION_RETRY_THREE, {
         durable: true,
         deadLetterExchange: ExchangeName.EVENTS,
         deadLetterRoutingKey: RoutingKey.TASK_COMPLETED,
         messageTtl: 15_000,
       }),
-      channel.assertQueue(InternalQueue.NOTIFICATION_DEAD, { durable: true }),
+      channel.assertQueue(WorkerQueue.NOTIFICATION_DEAD, { durable: true }),
     ])
     await Promise.all([
       channel.bindQueue(
@@ -207,22 +255,22 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
         RoutingKey.TASK_COMPLETED,
       ),
       channel.bindQueue(
-        InternalQueue.NOTIFICATION_RETRY_ONE,
+        WorkerQueue.NOTIFICATION_RETRY_ONE,
         ExchangeName.RETRY,
         RoutingKey.NOTIFICATION_RETRY_ONE,
       ),
       channel.bindQueue(
-        InternalQueue.NOTIFICATION_RETRY_TWO,
+        WorkerQueue.NOTIFICATION_RETRY_TWO,
         ExchangeName.RETRY,
         RoutingKey.NOTIFICATION_RETRY_TWO,
       ),
       channel.bindQueue(
-        InternalQueue.NOTIFICATION_RETRY_THREE,
+        WorkerQueue.NOTIFICATION_RETRY_THREE,
         ExchangeName.RETRY,
         RoutingKey.NOTIFICATION_RETRY_THREE,
       ),
       channel.bindQueue(
-        InternalQueue.NOTIFICATION_DEAD,
+        WorkerQueue.NOTIFICATION_DEAD,
         ExchangeName.DEAD_LETTER,
         RoutingKey.NOTIFICATION_DEAD,
       ),
@@ -246,6 +294,32 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     pending.resolve(this.decode(message))
   }
 
+  private async ensureReplyConsumer(): Promise<void> {
+    if (this.replyConsumerReady) {
+      return
+    }
+
+    if (this.replyConsumerSetup !== undefined) {
+      return this.replyConsumerSetup
+    }
+
+    this.replyConsumerSetup = this.getChannel()
+      .assertQueue('', { exclusive: true, autoDelete: true })
+      .then(async ({ queue }) => {
+        this.replyQueue = queue
+        await this.getChannel().consume(
+          queue,
+          (message) => this.receiveReply(message),
+          { noAck: true },
+        )
+        this.replyConsumerReady = true
+      })
+      .finally(() => {
+        this.replyConsumerSetup = undefined
+      })
+    return this.replyConsumerSetup
+  }
+
   private async processDelivery(
     message: ConsumeMessage | null,
     handler: MessageHandler,
@@ -261,48 +335,48 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       await handler(decoded, message)
       channel.ack(message)
     } catch (error: unknown) {
-      const retryable = !(error instanceof MessageProcessingError)
-        || error.retryable
-      const errorCode = error instanceof MessageProcessingError
-        ? error.code
-        : RabbitErrorCode.UNEXPECTED_MESSAGE_FAILURE
+      const retryable =
+        !(error instanceof MessageProcessingError) || error.retryable
+      const errorCode =
+        error instanceof MessageProcessingError
+          ? error.code
+          : RabbitErrorCode.UNEXPECTED_MESSAGE_FAILURE
+      const errorType = error instanceof Error ? error.name : 'UnknownError'
       const attemptValue: unknown = get(
         message.properties.headers,
         'x-taskflow-attempt',
       )
-      const attempt = isNumber(attemptValue) ? attemptValue : toNumber(attemptValue)
+      const convertedAttempt = isNumber(attemptValue)
+        ? attemptValue
+        : toNumber(attemptValue)
+      const attempt = isFinite(convertedAttempt) ? convertedAttempt : 0
 
       if (retryable && attempt < MAX_NOTIFICATION_ATTEMPTS) {
-        await channel.publish(
-          ExchangeName.RETRY,
-          this.retryRoutingKey(attempt + 1),
-          message.content,
-          {
-            contentType: 'application/json',
-            deliveryMode: 2,
+        const retryQueue = this.retryQueue(attempt + 1)
+        await this.sendToQueue({
+          queue: retryQueue,
+          payload: message.content,
+          options: {
             headers: { 'x-taskflow-attempt': attempt + 1 },
             messageId: message.properties.messageId,
             correlationId: message.properties.correlationId,
           },
-        )
+        })
         this.logger.warn(
-          `RabbitMQ message scheduled for retry correlationId=${message.properties.correlationId} operation=consume-message outcome=retry errorCode=${errorCode} attempt=${attempt + 1}`,
+          `RabbitMQ message scheduled for retry correlationId=${message.properties.correlationId} operation=consume-message outcome=retry errorCode=${errorCode} errorType=${errorType} attempt=${attempt + 1}`,
         )
       } else {
-        await channel.publish(
-          ExchangeName.DEAD_LETTER,
-          RoutingKey.NOTIFICATION_DEAD,
-          message.content,
-          {
-            contentType: 'application/json',
-            deliveryMode: 2,
+        await this.sendToQueue({
+          queue: WorkerQueue.NOTIFICATION_DEAD,
+          payload: message.content,
+          options: {
             headers: { 'x-taskflow-error-code': errorCode },
             messageId: message.properties.messageId,
             correlationId: message.properties.correlationId,
           },
-        )
+        })
         this.logger.error(
-          `RabbitMQ message dead-lettered correlationId=${message.properties.correlationId} operation=consume-message outcome=dead-lettered errorCode=${errorCode} attempt=${attempt}`,
+          `RabbitMQ message dead-lettered correlationId=${message.properties.correlationId} operation=consume-message outcome=dead-lettered errorCode=${errorCode} errorType=${errorType} attempt=${attempt}`,
         )
       }
 
@@ -310,21 +384,28 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private retryRoutingKey(attempt: number): RoutingKey {
+  private retryQueue(
+    attempt: number,
+  ):
+    | WorkerQueue.NOTIFICATION_RETRY_ONE
+    | WorkerQueue.NOTIFICATION_RETRY_TWO
+    | WorkerQueue.NOTIFICATION_RETRY_THREE {
     switch (attempt) {
       case 1:
-        return RoutingKey.NOTIFICATION_RETRY_ONE
+        return WorkerQueue.NOTIFICATION_RETRY_ONE
       case 2:
-        return RoutingKey.NOTIFICATION_RETRY_TWO
+        return WorkerQueue.NOTIFICATION_RETRY_TWO
       case 3:
-        return RoutingKey.NOTIFICATION_RETRY_THREE
+        return WorkerQueue.NOTIFICATION_RETRY_THREE
       default:
         throw new Error(`Unsupported notification retry attempt=${attempt}`)
     }
   }
 
-  private encode(value: unknown): Buffer {
-    const content = Buffer.from(JSON.stringify(value))
+  private encodePayload(payload: QueueSendCommand['payload']): Buffer {
+    const content = Buffer.isBuffer(payload)
+      ? payload
+      : Buffer.from(JSON.stringify(payload))
 
     if (content.byteLength > MAX_MESSAGE_BYTES) {
       throw new MessageProcessingError(

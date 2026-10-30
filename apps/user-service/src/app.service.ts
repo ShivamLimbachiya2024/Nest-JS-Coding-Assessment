@@ -15,9 +15,10 @@ export class AppService {
 
   ready(): Readonly<Record<string, string>> {
     return {
-      status: this.dataSource.isInitialized && this.rabbitmq.isReady
-        ? 'ready'
-        : 'not-ready',
+      status:
+        this.dataSource.isInitialized && this.rabbitmq.isReady
+          ? 'ready'
+          : 'not-ready',
     }
   }
 }

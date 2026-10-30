@@ -24,6 +24,8 @@ Tests cover Argon2, normalization, uniqueness, access/refresh claims, cookie fla
 
 ## Completion state
 
-- [ ] Source generated through verified schematics
-- [ ] Migration generated and reviewed
-- [ ] HTTP and RPC behavior verified
+- [x] Source generated through Nest CLI schematics
+- [x] Migration generated, reviewed, and exercised through up/down/re-up
+- [x] HTTP and RPC behavior verified through the full task creation flow
+
+The HTTP and RPC smoke run registered and logged in ADMIN and MEMBER accounts, issued cookie credentials, and verified the MEMBER as an assignee through the User worker. Automated suite and strict type/build checks passed on 2026-10-30.

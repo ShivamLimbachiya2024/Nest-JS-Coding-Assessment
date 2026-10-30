@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from './config.service.js';
+import { Test, TestingModule } from '@nestjs/testing'
+import { TaskflowConfigService } from './config.service.js'
 
-describe('ConfigService', () => {
-  let service: ConfigService;
+describe('TaskflowConfigService', () => {
+  let service: TaskflowConfigService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ConfigService],
-    }).compile();
+      providers: [TaskflowConfigService],
+    }).compile()
 
-    service = module.get<ConfigService>(ConfigService);
-  });
+    service = module.get<TaskflowConfigService>(TaskflowConfigService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

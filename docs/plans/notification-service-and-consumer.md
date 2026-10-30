@@ -22,6 +22,8 @@ Tests cover persistence, duplicate delivery, malformed events, transient retries
 
 ## Completion state
 
-- [ ] Source generated through verified schematics
-- [ ] Migration generated and reviewed
-- [ ] Worker and HTTP behavior verified
+- [x] Source generated through Nest CLI schematics
+- [x] Migration generated, reviewed, and exercised through up/down/re-up
+- [x] Worker and HTTP behavior verified
+
+The integrated smoke run observed one persisted completion notification for the assigned MEMBER after the outbox publication. Notification schema ownership and unique source-message constraint were verified through migration and full-flow behavior on 2026-10-30.

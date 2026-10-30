@@ -2,7 +2,7 @@ import {
   MessageType,
   OutboxStatus,
   TaskCompleted,
-} from '@taskflow/contracts'
+} from '../../../../contracts/src/index.js'
 import {
   Column,
   CreateDateColumn,
@@ -27,7 +27,7 @@ export class OutboxMessageEntity {
     enum: MessageType,
     enumName: 'message_type',
   })
-  declare messageType: MessageType
+  declare messageType: MessageType.TASK_COMPLETED
 
   @Column({ name: 'aggregate_id', type: 'uuid' })
   declare aggregateId: string
@@ -55,7 +55,12 @@ export class OutboxMessageEntity {
   @Column({ name: 'published_at', type: 'timestamptz', nullable: true })
   declare publishedAt: Date | null
 
-  @Column({ name: 'last_error_code', length: 100, nullable: true })
+  @Column({
+    name: 'last_error_code',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   declare lastErrorCode: string | null
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

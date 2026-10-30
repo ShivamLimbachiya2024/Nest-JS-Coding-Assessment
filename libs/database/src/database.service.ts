@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { TaskflowConfigService } from '@taskflow/config'
+import { TaskflowConfigService } from '../../config/src/config.service.js'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions.js'
 
 @Injectable()

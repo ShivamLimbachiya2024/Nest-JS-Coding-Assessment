@@ -1,8 +1,25 @@
 import { MessageType } from './message-type.enum.js'
 import { Expose } from 'class-transformer'
-import { IsDateString, IsEnum, IsString, IsUUID, MaxLength } from 'class-validator'
+import {
+  Equals,
+  Allow,
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator'
 
-export class MessageEnvelope<TPayload = unknown> {
+export class MessageEnvelope<
+  TPayload = unknown,
+  TMessageType extends MessageType = MessageType,
+> {
+  @Expose()
+  @IsInt()
+  @Equals(1)
+  declare version: 1
+
   @Expose()
   @IsUUID()
   declare messageId: string
@@ -13,7 +30,7 @@ export class MessageEnvelope<TPayload = unknown> {
 
   @Expose()
   @IsEnum(MessageType)
-  declare messageType: MessageType
+  declare messageType: TMessageType
 
   @Expose()
   @IsString()
@@ -25,5 +42,6 @@ export class MessageEnvelope<TPayload = unknown> {
   declare occurredAt: string
 
   @Expose()
+  @Allow()
   declare payload: TPayload
 }

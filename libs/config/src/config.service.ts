@@ -80,11 +80,11 @@ export class TaskflowConfigService {
   }
 
   get accessTokenSecret(): string {
-    return this.required('JWT_ACCESS_SECRET')
+    return this.secret('JWT_ACCESS_SECRET')
   }
 
   get refreshTokenSecret(): string {
-    return this.required('JWT_REFRESH_SECRET')
+    return this.secret('JWT_REFRESH_SECRET')
   }
 
   get jwtIssuer(): string {
@@ -145,26 +145,36 @@ export class TaskflowConfigService {
   }
 
   validateDatabase(): void {
-    this.databaseHost
-    this.databasePort
-    this.databaseUser
-    this.databasePassword
-    this.databaseName
+    void this.databaseHost
+    void this.databasePort
+    void this.databaseUser
+    void this.databasePassword
+    void this.databaseName
   }
 
   validateHttp(servicePortName: string): void {
     this.integer(servicePortName, 3000, 1, 65_535)
-    this.accessTokenSecret
-    this.jwtIssuer
-    this.jwtAudience
-    this.corsOrigins
-    this.rabbitmqUrl
+    void this.accessTokenSecret
+    void this.jwtIssuer
+    void this.jwtAudience
+    void this.corsOrigins
+    void this.rabbitmqUrl
     this.validateDatabase()
   }
 
   validateUserService(): void {
     this.validateHttp('USER_SERVICE_PORT')
-    this.refreshTokenSecret
-    this.refreshTokenTtlSeconds
+    void this.refreshTokenSecret
+    void this.refreshTokenTtlSeconds
+  }
+
+  private secret(name: string): string {
+    const value = this.required(name)
+
+    if (value.length < 32) {
+      throw new Error(`Secret configuration is too short key=${name}`)
+    }
+
+    return value
   }
 }

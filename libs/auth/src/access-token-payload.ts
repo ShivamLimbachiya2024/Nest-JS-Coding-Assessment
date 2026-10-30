@@ -1,6 +1,6 @@
 import { TokenType, UserRole } from '@taskflow/contracts'
 import { Expose } from 'class-transformer'
-import { IsEmail, IsEnum, IsUUID } from 'class-validator'
+import { IsEmail, IsEnum, IsInt, IsUUID } from 'class-validator'
 
 export class AccessTokenPayload {
   @Expose()
@@ -26,4 +26,12 @@ export class AccessTokenPayload {
   @Expose()
   @IsEnum(TokenType)
   declare type: TokenType.ACCESS
+
+  @Expose()
+  @IsInt()
+  declare iat: number
+
+  @Expose()
+  @IsInt()
+  declare exp: number
 }

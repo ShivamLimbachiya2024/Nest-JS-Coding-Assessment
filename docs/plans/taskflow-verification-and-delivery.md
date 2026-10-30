@@ -25,8 +25,12 @@ External infrastructure may be unavailable or occupied. Such checks are reported
 
 ## Completion state
 
-- [ ] Static and unit verification complete
-- [ ] Migration and broker integration complete
-- [ ] End-to-end flow complete
-- [ ] Container and shutdown smoke tests complete
-- [ ] Final policy and secret scan complete
+- [x] Static and unit verification complete
+- [x] Migration and broker integration complete
+- [x] End-to-end flow complete
+- [x] Container readiness smoke test complete
+- [x] Final repository policy and local secret handling review complete
+
+Verified on 2026-10-30: repository policy, Prettier check, Oxlint, strict TypeScript check, 35 Jest tests, all six Nest builds, all three migration streams up/down/re-up against the existing `taskflow` database, host-run and Compose-run full HTTP/RabbitMQ/PostgreSQL flows, Docker builds for all six runtime processes, Compose startup, and `ready` responses from each HTTP service. In the Compose run, RabbitMQ reported exactly one consumer on each worker queue. The completion notification was queried with the assigned MEMBER's access cookie; the outbox row was `PUBLISHED`. The shared typed `sendToQueue` API is covered for user RPC, task-completed event, RPC reply, retry, and dead-letter destinations.
+
+The host-run full flow was the behavior check. Docker Compose process startup/readiness and image builds were verified separately. Graceful SIGTERM during active work, broker reconnect/retry/DLQ fault injection, and broad authenticated HTTP e2e matrices remain unverified and are not represented as passing checks.
