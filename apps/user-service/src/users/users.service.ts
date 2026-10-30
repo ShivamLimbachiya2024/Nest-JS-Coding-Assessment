@@ -59,6 +59,14 @@ export class UsersService {
       .getOne()
   }
 
+  async findCredentialsById(id: string): Promise<UserEntity | null> {
+    return this.users
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.id = :id', { id })
+      .getOne()
+  }
+
   async getById(id: string): Promise<UserResponseDto> {
     const user = await this.users.findOneBy({ id })
 

@@ -57,6 +57,7 @@ flowchart LR
 - `POST /users/register` creates a user with name, email, password, and role.
 - `POST /users/login` checks credentials, creates a refresh session, and sets access and refresh JWT cookies.
 - `POST /users/refresh` rotates a refresh session and returns fresh cookies.
+- `PATCH /users/password` verifies the current password, stores a new Argon2 hash, revokes refresh sessions, and clears both cookies.
 - `GET /users/{id}` and `GET /users` return safe user projections to authenticated callers.
 - The worker uses the same User Service application and persistence layer to check whether a user ID exists.
 
@@ -208,12 +209,13 @@ Named PostgreSQL and RabbitMQ volumes preserve local data when containers are st
 
 1. Register through `POST /users/register` and choose `ADMIN` or `MEMBER` as required by the assessment.
 2. Log in through `POST /users/login`. Save the returned cookies in the client for later requests.
-3. Create a task through `POST /tasks`, passing an existing user's ID as `assignedUserId`.
-4. Task Service asks the User verification worker to confirm the assignee. The task is saved only after a positive reply.
-5. Change the task status through `PATCH /tasks/{id}/status` with status `DONE`.
-6. Task Service commits the status and outbox event. The outbox publisher later publishes the event to RabbitMQ.
-7. The Notification worker persists a notification for the assignee.
-8. Call `GET /notifications` with the login cookies to list that user's notifications.
+3. To change the password while signed in, call `PATCH /users/password` with `currentPassword` and `newPassword`. This revokes refresh sessions and clears both cookies; log in again with the new password.
+4. Create a task through `POST /tasks`, passing an existing user's ID as `assignedUserId`.
+5. Task Service asks the User verification worker to confirm the assignee. The task is saved only after a positive reply.
+6. Change the task status through `PATCH /tasks/{id}/status` with status `DONE`.
+7. Task Service commits the status and outbox event. The outbox publisher later publishes the event to RabbitMQ.
+8. The Notification worker persists a notification for the assignee.
+9. Call `GET /notifications` with the login cookies to list that user's notifications.
 
 ## Code entry points
 

@@ -24,7 +24,7 @@
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "test-watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "test-coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage --runInBand",
-    "test-e2e": "NODE_OPTIONS=--experimental-vm-modules jest --config jest-e2e.config.cjs --runInBand",
+    "test-e2e": "ENV_FILE=apps/user-service/.env NODE_OPTIONS=--experimental-vm-modules jest --config jest-e2e.config.cjs --runInBand",
     "check-policy": "node scripts/check-repository-policy.mjs",
     "verify": "npm run check-policy && npm run format-check && npm run lint && npm run typecheck && npm test && npm run build",
     "start-user": "ENV_FILE=apps/user-service/.env SERVICE_NAME=user-service nest start user-service --watch",

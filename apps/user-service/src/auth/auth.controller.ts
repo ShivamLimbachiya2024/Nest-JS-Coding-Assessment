@@ -3,17 +3,22 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common'
 import {
   ApiBody,
   ApiCookieAuth,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger'
+import { AccessAuthGuard, CurrentPrincipal } from 'auth'
+import type { AuthPrincipal } from 'auth'
 import { AppConfigService } from 'config'
 import type { Request, Response } from 'express'
 import get from 'lodash/get.js'
@@ -22,6 +27,7 @@ import { LoginUserDto } from '../users/dto/login-user.dto.js'
 import { RefreshResponseDto } from '../users/dto/refresh-response.dto.js'
 import { RegisterUserDto } from '../users/dto/register-user.dto.js'
 import { UserResponseDto } from '../users/dto/user-response.dto.js'
+import { ChangePasswordDto } from './dto/change-password.dto.js'
 import { AuthService, IssuedSession } from './auth.service.js'
 
 @Controller('users')
@@ -67,6 +73,23 @@ export class AuthController {
     return new RefreshResponseDto(issued.user)
   }
 
+  @Patch('password')
+  @UseGuards(AccessAuthGuard)
+  @ApiBody({ type: ChangePasswordDto })
+  @ApiCookieAuth('access_token')
+  @ApiNoContentResponse({
+    description: 'Password changed. Sign in again with the new password.',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changePassword(
+    @CurrentPrincipal() principal: AuthPrincipal,
+    @Body() input: ChangePasswordDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    await this.auth.changePassword(principal.userId, input)
+    this.clearCookies(response)
+  }
+
   private setCookies(response: Response, issued: IssuedSession): void {
     const common = {
       domain: this.config.cookieDomain,
@@ -83,6 +106,23 @@ export class AuthController {
       ...common,
       path: '/users/refresh',
       maxAge: this.config.refreshTokenTtlSeconds * 1000,
+    })
+  }
+
+  private clearCookies(response: Response): void {
+    const common = {
+      domain: this.config.cookieDomain,
+      httpOnly: true,
+      sameSite: 'lax' as const,
+      secure: this.config.isProduction,
+    }
+    response.clearCookie(this.config.accessCookieName, {
+      ...common,
+      path: '/',
+    })
+    response.clearCookie(this.config.refreshCookieName, {
+      ...common,
+      path: '/users/refresh',
     })
   }
 }

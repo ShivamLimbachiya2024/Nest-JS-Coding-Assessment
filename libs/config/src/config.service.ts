@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { config as loadEnvironmentFile } from 'dotenv'
 import compact from 'lodash/compact.js'
 import isFinite from 'lodash/isFinite.js'
 import map from 'lodash/map.js'
@@ -9,6 +10,10 @@ import uniq from 'lodash/uniq.js'
 
 @Injectable()
 export class AppConfigService {
+  loadEnvironmentFile(): void {
+    loadEnvironmentFile({ path: this.optional('ENV_FILE', '.env') })
+  }
+
   required(name: string): string {
     const value = trim(process.env[name])
 

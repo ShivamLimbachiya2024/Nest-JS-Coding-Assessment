@@ -14,6 +14,7 @@ import { LoginUserDto } from '../users/dto/login-user.dto.js'
 import { RegisterUserDto } from '../users/dto/register-user.dto.js'
 import { UserResponseDto } from '../users/dto/user-response.dto.js'
 import { UsersService } from '../users/users.service.js'
+import { ChangePasswordDto } from './dto/change-password.dto.js'
 
 export interface IssuedSession {
   readonly accessToken: string
@@ -158,6 +159,80 @@ export class AuthService {
       `Refresh session rotated correlationId=${this.context.correlationId} operation=refresh-session outcome=completed userId=${user.id} sessionId=${newSessionId}`,
     )
     return { accessToken, refreshToken: newRefreshToken, user }
+  }
+
+  async changePassword(
+    userId: string,
+    input: ChangePasswordDto,
+  ): Promise<void> {
+    const user = await this.users.findCredentialsById(userId)
+
+    if (user === null) {
+      throw new ApplicationError(
+        ErrorCode.USER_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'User was not found',
+      )
+    }
+
+    if (!(await verify(user.passwordHash, input.currentPassword))) {
+      throw new ApplicationError(
+        ErrorCode.INVALID_CREDENTIALS,
+        HttpStatus.UNAUTHORIZED,
+        'Current password is invalid',
+      )
+    }
+
+    if (input.currentPassword === input.newPassword) {
+      throw new ApplicationError(
+        ErrorCode.VALIDATION_FAILED,
+        HttpStatus.BAD_REQUEST,
+        'New password must differ from the current password',
+      )
+    }
+
+    const newPasswordHash = await hash(input.newPassword)
+    const revokedAt = new Date()
+    const revokedSessions = await this.dataSource.transaction(
+      async (manager) => {
+        const userRepository = manager.getRepository(UserEntity)
+        const currentUser = await userRepository
+          .createQueryBuilder('user')
+          .addSelect('user.passwordHash')
+          .where('user.id = :userId', { userId })
+          .setLock('pessimistic_write')
+          .getOne()
+
+        if (currentUser === null) {
+          throw new ApplicationError(
+            ErrorCode.USER_NOT_FOUND,
+            HttpStatus.NOT_FOUND,
+            'User was not found',
+          )
+        }
+
+        if (currentUser.passwordHash !== user.passwordHash) {
+          throw new ApplicationError(
+            ErrorCode.CONFLICT,
+            HttpStatus.CONFLICT,
+            'Password changed concurrently. Sign in and try again',
+          )
+        }
+
+        currentUser.passwordHash = newPasswordHash
+        await userRepository.save(currentUser)
+
+        const result = await manager
+          .getRepository(RefreshSessionEntity)
+          .update({ userId, revokedAt: IsNull() }, { revokedAt })
+
+        return result.affected ?? 0
+      },
+    )
+
+    this.logger.info(
+      `Password changed correlationId=${this.context.correlationId} operation=change-password outcome=completed userId=${userId} revokedSessions=${revokedSessions}`,
+    )
   }
 
   async revokeExpiredSessions(): Promise<void> {

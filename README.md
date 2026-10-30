@@ -175,6 +175,7 @@ curl -b cookies.txt http://localhost:3003/notifications
 - Browser clients must use credentialed requests and an origin listed in `CORS_ORIGINS`. The local defaults allow the frontend on port 3000 and same-origin Swagger pages on API ports 3001, 3002, and 3003. Keep the allow-list explicit.
 - Public registration accepts `ADMIN` because the assessment requires it. A production system would normally restrict administrator creation.
 - Passwords are Argon2-hashed. Refresh tokens are rotated and stored only as hashes. Authentication tokens are sent in HttpOnly cookies.
+- Signed-in users change their password with `PATCH /users/password`, providing the current and new passwords. The service revokes refresh sessions and clears both cookies; the user signs in again with the new password.
 - RabbitMQ delivery is at least once. Outbox publishing and notification idempotency protect against message loss and duplicates; the system does not claim exactly-once delivery.
 
 ## Verify changes locally
