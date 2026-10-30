@@ -1,5 +1,5 @@
 import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
-import { TaskflowLoggerModule } from '@taskflow/logger'
+import { AppLoggerModule } from 'logger'
 import { ApplicationExceptionFilter } from './application-exception.filter.js'
 import { CorrelationMiddleware } from './correlation.middleware.js'
 import { OriginMiddleware } from './origin.middleware.js'
@@ -8,7 +8,7 @@ import { RequestLoggingInterceptor } from './request-logging.interceptor.js'
 
 @Global()
 @Module({
-  imports: [TaskflowLoggerModule],
+  imports: [AppLoggerModule],
   providers: [
     ApplicationExceptionFilter,
     CorrelationMiddleware,

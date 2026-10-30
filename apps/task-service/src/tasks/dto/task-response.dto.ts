@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { TaskStatus } from '@taskflow/contracts'
+import { TaskStatus } from 'contracts'
 
 export class TaskResponseDto {
   @ApiProperty({ format: 'uuid' })

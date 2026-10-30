@@ -4,13 +4,13 @@ Every message envelope contains `version: 1`, `messageId`, `correlationId`, `mes
 
 All outbound broker traffic goes through `RabbitmqService.sendToQueue({ queue, payload, options? })`. The `WorkerQueue` enum defines every routable destination. `QueuePayloadMap` accepts a user-existence request envelope only for the verification queue, a task-completed envelope only for the notification queue, a user-existence response only for the direct reply destination, and serialized message bytes for retry and dead-letter relays. `resolveQueueRoute` maps each enum value to its durable exchange and routing key or the private reply route. The request process creates an exclusive auto-delete reply queue and provides its name in `replyTo`, allowing separate worker processes to answer safely. Each send is persistent and publisher-confirmed.
 
-| Queue enum                                                                     | Message type or payload                              | Broker route                                  |
-| ------------------------------------------------------------------------------ | ---------------------------------------------------- | --------------------------------------------- |
-| `USER_VERIFICATION`                                                            | `USERS_EXISTS_REQUEST` with `UserExistenceRequest`   | RPC exchange and verification routing key     |
-| `NOTIFICATION_TASK_COMPLETED`                                                  | `TASK_COMPLETED` with `TaskCompleted`                | Events exchange and completion routing key    |
-| `RPC_REPLY`                                                                    | `USERS_EXISTS_RESPONSE` with `UserExistenceResponse` | Request's private exclusive reply queue       |
-| `NOTIFICATION_RETRY_ONE`, `NOTIFICATION_RETRY_TWO`, `NOTIFICATION_RETRY_THREE` | Original serialized message bytes                    | Retry exchange and matching retry routing key |
-| `NOTIFICATION_DEAD`                                                            | Original serialized message bytes                    | Dead-letter exchange and terminal routing key |
+| Queue enum                                                                     | Queue name                    | Message type or payload                              | Broker route                                  |
+| ------------------------------------------------------------------------------ | ----------------------------- | ---------------------------------------------------- | --------------------------------------------- |
+| `USER_VERIFICATION`                                                            | `user_verification`           | `USERS_EXISTS_REQUEST` with `UserExistenceRequest`   | RPC exchange and verification routing key     |
+| `NOTIFICATION_TASK_COMPLETED`                                                  | `notification_task_completed` | `TASK_COMPLETED` with `TaskCompleted`                | Events exchange and completion routing key    |
+| `RPC_REPLY`                                                                    | `rpc_replies`                 | `USERS_EXISTS_RESPONSE` with `UserExistenceResponse` | Request's private exclusive reply queue       |
+| `NOTIFICATION_RETRY_ONE`, `NOTIFICATION_RETRY_TWO`, `NOTIFICATION_RETRY_THREE` | `notification_retry_one` etc. | Original serialized message bytes                    | Retry exchange and matching retry routing key |
+| `NOTIFICATION_DEAD`                                                            | `notification_dead`           | Original serialized message bytes                    | Dead-letter exchange and terminal routing key |
 
 ## User verification
 

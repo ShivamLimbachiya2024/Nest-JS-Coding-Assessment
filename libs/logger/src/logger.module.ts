@@ -1,15 +1,15 @@
 import { Global, Module } from '@nestjs/common'
-import { TaskflowConfigModule, TaskflowConfigService } from '@taskflow/config'
+import { AppConfigModule, AppConfigService } from 'config'
 import { LoggerModule as PinoLoggerModule } from 'nestjs-pino'
 import { StoryLogger } from './logger.service.js'
 
 @Global()
 @Module({
   imports: [
-    TaskflowConfigModule,
+    AppConfigModule,
     PinoLoggerModule.forRootAsync({
-      inject: [TaskflowConfigService],
-      useFactory: (config: TaskflowConfigService) => ({
+      inject: [AppConfigService],
+      useFactory: (config: AppConfigService) => ({
         pinoHttp: {
           autoLogging: false,
           customProps: () => ({ service: config.serviceName }),
@@ -43,4 +43,4 @@ import { StoryLogger } from './logger.service.js'
   providers: [StoryLogger],
   exports: [StoryLogger, PinoLoggerModule],
 })
-export class TaskflowLoggerModule {}
+export class AppLoggerModule {}

@@ -4,10 +4,12 @@ module.exports = {
   extensionsToTreatAsEsm: ['.ts'],
   moduleFileExtensions: ['js', 'json', 'ts'],
   moduleNameMapper: {
-    '^@taskflow/database/(user-service|task-service|notification-service)$':
+    '^database/(user-service|task-service|notification-service)$':
       '<rootDir>/libs/database/src/entities/$1/index.ts',
-    '^@taskflow/([^/]+)$': '<rootDir>/libs/$1/src/index.ts',
-    '^@taskflow/([^/]+)/(.*)$': '<rootDir>/libs/$1/src/$2',
+    '^(auth|common|config|contracts|database|logger|rabbitmq)$':
+      '<rootDir>/libs/$1/src/index.ts',
+    '^(auth|common|config|contracts|database|logger|rabbitmq)/(.*)$':
+      '<rootDir>/libs/$1/src/$2',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   roots: ['<rootDir>/apps', '<rootDir>/libs'],

@@ -1,18 +1,15 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
-import { ApplicationError, ErrorCode, RequestContext } from '@taskflow/common'
-import { TaskflowConfigService } from '@taskflow/config'
-import { TokenType } from '@taskflow/contracts'
-import {
-  RefreshSessionEntity,
-  UserEntity,
-} from '@taskflow/database/user-service'
-import { StoryLogger } from '@taskflow/logger'
+import { ApplicationError, ErrorCode, RequestContext } from 'common'
+import { AppConfigService } from 'config'
+import { TokenType } from 'contracts'
+import { RefreshSessionEntity, UserEntity } from 'database/user-service'
+import { StoryLogger } from 'logger'
 import { hash, verify } from 'argon2'
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto'
 import { DataSource, IsNull, LessThanOrEqual, Repository } from 'typeorm'
-import { AuthService as SharedAuthService } from '@taskflow/auth'
+import { AuthService as SharedAuthService } from 'auth'
 import { LoginUserDto } from '../users/dto/login-user.dto.js'
 import { RegisterUserDto } from '../users/dto/register-user.dto.js'
 import { UserResponseDto } from '../users/dto/user-response.dto.js'
@@ -32,7 +29,7 @@ export class AuthService {
     private readonly users: UsersService,
     private readonly jwt: JwtService,
     private readonly sharedAuth: SharedAuthService,
-    private readonly config: TaskflowConfigService,
+    private readonly config: AppConfigService,
     private readonly dataSource: DataSource,
     private readonly context: RequestContext,
     private readonly logger: StoryLogger,

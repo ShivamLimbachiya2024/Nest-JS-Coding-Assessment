@@ -4,7 +4,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common'
-import { StoryLogger } from '@taskflow/logger'
+import { StoryLogger } from 'logger'
 import { Request } from 'express'
 import { Observable, finalize } from 'rxjs'
 import { RequestContext } from './request-context.js'

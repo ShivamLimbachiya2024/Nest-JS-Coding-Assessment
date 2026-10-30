@@ -1,11 +1,11 @@
 import { Global, Module } from '@nestjs/common'
-import { TaskflowConfigModule } from '@taskflow/config'
-import { TaskflowLoggerModule } from '@taskflow/logger'
+import { AppConfigModule } from 'config'
+import { AppLoggerModule } from 'logger'
 import { RabbitmqService } from './rabbitmq.service.js'
 
 @Global()
 @Module({
-  imports: [TaskflowConfigModule, TaskflowLoggerModule],
+  imports: [AppConfigModule, AppLoggerModule],
   providers: [RabbitmqService],
   exports: [RabbitmqService],
 })

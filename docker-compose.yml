@@ -2,8 +2,8 @@ services:
   rabbitmq:
     image: rabbitmq:4.3.7-management
     environment:
-      RABBITMQ_DEFAULT_USER: taskflow
-      RABBITMQ_DEFAULT_PASS: taskflow-dev-password
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: rabbitmq-dev-password
     ports:
       - '5672:5672'
       - '15672:15672'
@@ -33,15 +33,19 @@ services:
       retries: 20
 
   user-service:
+    profiles: ['application']
     build:
       context: .
       dockerfile: docker/Dockerfile
     command: ['npm', 'run', 'start-user']
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
     env_file: .env
     environment:
       SERVICE_NAME: user-service
       DATABASE_HOST: host.docker.internal
-      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+      RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
     ports:
       - '3001:3001'
     depends_on:
@@ -49,15 +53,19 @@ services:
         condition: service_healthy
 
   task-service:
+    profiles: ['application']
     build:
       context: .
       dockerfile: docker/Dockerfile
     command: ['npm', 'run', 'start-task']
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
     env_file: .env
     environment:
       SERVICE_NAME: task-service
       DATABASE_HOST: host.docker.internal
-      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+      RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
     ports:
       - '3002:3002'
     depends_on:
@@ -65,15 +73,19 @@ services:
         condition: service_healthy
 
   notification-service:
+    profiles: ['application']
     build:
       context: .
       dockerfile: docker/Dockerfile
     command: ['npm', 'run', 'start-notification']
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
     env_file: .env
     environment:
       SERVICE_NAME: notification-service
       DATABASE_HOST: host.docker.internal
-      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+      RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
     ports:
       - '3003:3003'
     depends_on:
@@ -81,45 +93,57 @@ services:
         condition: service_healthy
 
   user-verification-worker:
+    profiles: ['application']
     build:
       context: .
       dockerfile: docker/Dockerfile
-    command: ['npm', 'run', 'start-user-worker']
+    command: ['npm', 'run', 'start-user-verification-worker']
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
     env_file: .env
     environment:
       SERVICE_NAME: user-verification-worker
       DATABASE_HOST: host.docker.internal
-      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
-      WORKER_QUEUE: taskflow-user-verification
+      RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
+      WORKER_QUEUE: user_verification
     depends_on:
       rabbitmq:
         condition: service_healthy
 
   notification-task-completed-worker:
+    profiles: ['application']
     build:
       context: .
       dockerfile: docker/Dockerfile
-    command: ['npm', 'run', 'start-notification-worker']
+    command: ['npm', 'run', 'start-notification-task-completed-worker']
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
     env_file: .env
     environment:
       SERVICE_NAME: notification-task-completed-worker
       DATABASE_HOST: host.docker.internal
-      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
-      WORKER_QUEUE: taskflow-notification-task-completed
+      RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
+      WORKER_QUEUE: notification_task_completed
     depends_on:
       rabbitmq:
         condition: service_healthy
 
   task-outbox-publisher:
+    profiles: ['application']
     build:
       context: .
       dockerfile: docker/Dockerfile
     command: ['npm', 'run', 'start-task-outbox']
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
     env_file: .env
     environment:
       SERVICE_NAME: task-outbox-publisher
       DATABASE_HOST: host.docker.internal
-      RABBITMQ_URL: amqp://taskflow:taskflow-dev-password@rabbitmq:5672
+      RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
     depends_on:
       rabbitmq:
         condition: service_healthy

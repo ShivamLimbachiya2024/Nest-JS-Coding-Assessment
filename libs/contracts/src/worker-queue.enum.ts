@@ -1,11 +1,11 @@
 export enum WorkerQueue {
-  USER_VERIFICATION = 'taskflow-user-verification',
-  NOTIFICATION_TASK_COMPLETED = 'taskflow-notification-task-completed',
-  RPC_REPLY = 'taskflow-rpc-replies',
-  NOTIFICATION_RETRY_ONE = 'taskflow-notification-retry-one',
-  NOTIFICATION_RETRY_TWO = 'taskflow-notification-retry-two',
-  NOTIFICATION_RETRY_THREE = 'taskflow-notification-retry-three',
-  NOTIFICATION_DEAD = 'taskflow-notification-dead',
+  USER_VERIFICATION = 'user_verification',
+  NOTIFICATION_TASK_COMPLETED = 'notification_task_completed',
+  RPC_REPLY = 'rpc_replies',
+  NOTIFICATION_RETRY_ONE = 'notification_retry_one',
+  NOTIFICATION_RETRY_TWO = 'notification_retry_two',
+  NOTIFICATION_RETRY_THREE = 'notification_retry_three',
+  NOTIFICATION_DEAD = 'notification_dead',
 }
 
 export type ConsumerQueue =

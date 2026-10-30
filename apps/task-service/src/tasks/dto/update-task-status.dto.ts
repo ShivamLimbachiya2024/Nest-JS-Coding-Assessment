@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { TaskStatus } from '@taskflow/contracts'
+import { TaskStatus } from 'contracts'
 import { IsEnum } from 'class-validator'
 
 export class UpdateTaskStatusDto {

@@ -1,3 +1,3 @@
-import { PaginationQueryDto } from '@taskflow/common'
+import { PaginationQueryDto } from 'common'
 
 export class UserQueryDto extends PaginationQueryDto {}

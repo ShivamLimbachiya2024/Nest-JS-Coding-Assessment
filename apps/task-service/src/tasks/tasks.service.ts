@@ -5,7 +5,7 @@ import {
   ErrorCode,
   PaginationResponse,
   RequestContext,
-} from '@taskflow/common'
+} from 'common'
 import {
   ContractsService,
   MessageType,
@@ -14,17 +14,14 @@ import {
   TaskStatus,
   UserExistenceRequest,
   WorkerQueue,
-} from '@taskflow/contracts'
-import {
-  OutboxMessageEntity,
-  TaskEntity,
-} from '@taskflow/database/task-service'
-import { StoryLogger } from '@taskflow/logger'
+} from 'contracts'
+import { OutboxMessageEntity, TaskEntity } from 'database/task-service'
+import { StoryLogger } from 'logger'
 import {
   MessageProcessingError,
   RabbitErrorCode,
   RabbitmqService,
-} from '@taskflow/rabbitmq'
+} from 'rabbitmq'
 import map from 'lodash/map.js'
 import { randomUUID } from 'node:crypto'
 import { DataSource, FindOptionsWhere, Repository } from 'typeorm'

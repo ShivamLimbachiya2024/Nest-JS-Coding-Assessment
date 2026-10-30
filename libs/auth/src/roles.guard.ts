@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { UserRole } from '@taskflow/contracts'
+import { UserRole } from 'contracts'
 import { Request } from 'express'
 import includes from 'lodash/includes.js'
 import { Roles } from './roles.decorator.js'

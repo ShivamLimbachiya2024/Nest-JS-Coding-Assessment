@@ -1,10 +1,10 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common'
-import { TaskflowConfigService } from '@taskflow/config'
-import { ContractsService, OutboxStatus } from '@taskflow/contracts'
-import { OutboxMessageEntity } from '@taskflow/database/task-service'
-import { StoryLogger } from '@taskflow/logger'
-import { MessageProcessingError, RabbitmqService } from '@taskflow/rabbitmq'
-import { WorkerQueue } from '@taskflow/contracts'
+import { AppConfigService } from 'config'
+import { ContractsService, OutboxStatus } from 'contracts'
+import { OutboxMessageEntity } from 'database/task-service'
+import { StoryLogger } from 'logger'
+import { MessageProcessingError, RabbitmqService } from 'rabbitmq'
+import { WorkerQueue } from 'contracts'
 import map from 'lodash/map.js'
 import { DataSource, Repository } from 'typeorm'
 
@@ -23,7 +23,7 @@ export class OutboxPublisherService implements OnModuleDestroy {
     private readonly dataSource: DataSource,
     private readonly rabbitmq: RabbitmqService,
     private readonly contracts: ContractsService,
-    private readonly config: TaskflowConfigService,
+    private readonly config: AppConfigService,
     private readonly logger: StoryLogger,
   ) {}
 

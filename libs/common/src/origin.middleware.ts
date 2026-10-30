@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable, NestMiddleware } from '@nestjs/common'
-import { TaskflowConfigService } from '@taskflow/config'
+import { AppConfigService } from 'config'
 import { NextFunction, Request, Response } from 'express'
 import includes from 'lodash/includes.js'
 import isString from 'lodash/isString.js'
@@ -15,7 +15,7 @@ enum HttpMethod {
 
 @Injectable()
 export class OriginMiddleware implements NestMiddleware {
-  constructor(private readonly config: TaskflowConfigService) {}
+  constructor(private readonly config: AppConfigService) {}
 
   use(request: Request, _response: Response, next: NextFunction): void {
     const stateChangingMethods: readonly HttpMethod[] = [

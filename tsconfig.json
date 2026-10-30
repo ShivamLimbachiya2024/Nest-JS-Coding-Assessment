@@ -25,29 +25,29 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["jest", "node"],
     "paths": {
-      "@taskflow/auth": ["./libs/auth/src/index.ts"],
-      "@taskflow/auth/*": ["./libs/auth/src/*"],
-      "@taskflow/common": ["./libs/common/src/index.ts"],
-      "@taskflow/common/*": ["./libs/common/src/*"],
-      "@taskflow/config": ["./libs/config/src/index.ts"],
-      "@taskflow/config/*": ["./libs/config/src/*"],
-      "@taskflow/contracts": ["./libs/contracts/src/index.ts"],
-      "@taskflow/contracts/*": ["./libs/contracts/src/*"],
-      "@taskflow/database": ["./libs/database/src/index.ts"],
-      "@taskflow/database/*": ["./libs/database/src/*"],
-      "@taskflow/database/user-service": [
+      "auth": ["./libs/auth/src/index.ts"],
+      "auth/*": ["./libs/auth/src/*"],
+      "common": ["./libs/common/src/index.ts"],
+      "common/*": ["./libs/common/src/*"],
+      "config": ["./libs/config/src/index.ts"],
+      "config/*": ["./libs/config/src/*"],
+      "contracts": ["./libs/contracts/src/index.ts"],
+      "contracts/*": ["./libs/contracts/src/*"],
+      "database": ["./libs/database/src/index.ts"],
+      "database/*": ["./libs/database/src/*"],
+      "database/user-service": [
         "./libs/database/src/entities/user-service/index.ts"
       ],
-      "@taskflow/database/task-service": [
+      "database/task-service": [
         "./libs/database/src/entities/task-service/index.ts"
       ],
-      "@taskflow/database/notification-service": [
+      "database/notification-service": [
         "./libs/database/src/entities/notification-service/index.ts"
       ],
-      "@taskflow/logger": ["./libs/logger/src/index.ts"],
-      "@taskflow/logger/*": ["./libs/logger/src/*"],
-      "@taskflow/rabbitmq": ["./libs/rabbitmq/src/index.ts"],
-      "@taskflow/rabbitmq/*": ["./libs/rabbitmq/src/*"]
+      "logger": ["./libs/logger/src/index.ts"],
+      "logger/*": ["./libs/logger/src/*"],
+      "rabbitmq": ["./libs/rabbitmq/src/index.ts"],
+      "rabbitmq/*": ["./libs/rabbitmq/src/*"]
     }
   },
   "files": [],

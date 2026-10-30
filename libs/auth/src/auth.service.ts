@@ -1,8 +1,8 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { ApplicationError, ErrorCode } from '@taskflow/common'
-import { TaskflowConfigService } from '@taskflow/config'
-import { TokenType } from '@taskflow/contracts'
+import { ApplicationError, ErrorCode } from 'common'
+import { AppConfigService } from 'config'
+import { TokenType } from 'contracts'
 import { plainToInstance } from 'class-transformer'
 import { validateSync } from 'class-validator'
 import isEmpty from 'lodash/isEmpty.js'
@@ -13,7 +13,7 @@ import { RefreshTokenPayload } from './refresh-token-payload.js'
 export class AuthService {
   constructor(
     private readonly jwt: JwtService,
-    private readonly config: TaskflowConfigService,
+    private readonly config: AppConfigService,
   ) {}
 
   async verifyAccessToken(token: string): Promise<AccessTokenPayload> {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { RabbitmqService } from '@taskflow/rabbitmq'
+import { RabbitmqService } from 'rabbitmq'
 import { DataSource } from 'typeorm'
 
 @Injectable()

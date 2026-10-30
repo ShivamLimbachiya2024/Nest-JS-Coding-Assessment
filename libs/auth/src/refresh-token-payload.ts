@@ -1,4 +1,4 @@
-import { TokenType } from '@taskflow/contracts'
+import { TokenType } from 'contracts'
 import { Expose } from 'class-transformer'
 import { IsEnum, IsInt, IsUUID } from 'class-validator'
 

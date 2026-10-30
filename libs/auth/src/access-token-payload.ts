@@ -1,4 +1,4 @@
-import { TokenType, UserRole } from '@taskflow/contracts'
+import { TokenType, UserRole } from 'contracts'
 import { Expose } from 'class-transformer'
 import { IsEmail, IsEnum, IsInt, IsUUID } from 'class-validator'
 

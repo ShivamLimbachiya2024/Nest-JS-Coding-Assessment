@@ -1,4 +1,4 @@
-import type { ConsumerQueue } from '@taskflow/contracts'
+import type { ConsumerQueue } from 'contracts'
 import find from 'lodash/find.js'
 import includes from 'lodash/includes.js'
 import trim from 'lodash/trim.js'

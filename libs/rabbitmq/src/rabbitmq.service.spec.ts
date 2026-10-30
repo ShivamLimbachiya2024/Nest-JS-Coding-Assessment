@@ -1,4 +1,4 @@
-import { WorkerQueue } from '@taskflow/contracts'
+import { WorkerQueue } from 'contracts'
 import {
   ExchangeName,
   QueueRouteKind,

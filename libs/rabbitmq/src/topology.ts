@@ -1,18 +1,18 @@
-import { WorkerQueue } from '@taskflow/contracts'
+import { WorkerQueue } from 'contracts'
 import type {
   MessageEnvelope,
   MessageType,
   TaskCompleted,
   UserExistenceRequest,
   UserExistenceResponse,
-} from '@taskflow/contracts'
+} from 'contracts'
 import type { Options } from 'amqplib'
 
 export enum ExchangeName {
-  RPC = 'taskflow-rpc',
-  EVENTS = 'taskflow-events',
-  RETRY = 'taskflow-retry',
-  DEAD_LETTER = 'taskflow-dead-letter',
+  RPC = 'rpc',
+  EVENTS = 'events',
+  RETRY = 'retry',
+  DEAD_LETTER = 'dead-letter',
 }
 
 export enum RoutingKey {

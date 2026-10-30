@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { TaskflowConfigService } from '../../config/src/config.service.js'
+import { AppConfigService } from '../../config/src/config.service.js'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions.js'
 
 @Injectable()
 export class DatabaseService {
   static options(
-    config: TaskflowConfigService,
+    config: AppConfigService,
     migrationOwner: string,
     entities: PostgresConnectionOptions['entities'],
     migrations: PostgresConnectionOptions['migrations'],

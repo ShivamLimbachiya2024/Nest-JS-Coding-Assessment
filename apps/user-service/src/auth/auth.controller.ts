@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, Res } from '@nestjs/common'
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
-import { TaskflowConfigService } from '@taskflow/config'
+import { AppConfigService } from 'config'
 import type { Request, Response } from 'express'
 import get from 'lodash/get.js'
 import isString from 'lodash/isString.js'
@@ -15,7 +15,7 @@ import { AuthService, IssuedSession } from './auth.service.js'
 export class AuthController {
   constructor(
     private readonly auth: AuthService,
-    private readonly config: TaskflowConfigService,
+    private readonly config: AppConfigService,
   ) {}
 
   @Post('register')

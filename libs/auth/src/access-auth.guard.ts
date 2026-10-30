@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
-import { TaskflowConfigService } from '@taskflow/config'
+import { AppConfigService } from 'config'
 import { Request } from 'express'
 import get from 'lodash/get.js'
 import isString from 'lodash/isString.js'
@@ -9,7 +9,7 @@ import { AuthService } from './auth.service.js'
 export class AccessAuthGuard implements CanActivate {
   constructor(
     private readonly auth: AuthService,
-    private readonly config: TaskflowConfigService,
+    private readonly config: AppConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

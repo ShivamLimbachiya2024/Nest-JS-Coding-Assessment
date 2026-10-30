@@ -1,4 +1,4 @@
-import { UserRole } from '@taskflow/contracts'
+import { UserRole } from 'contracts'
 
 export interface AuthPrincipal {
   readonly userId: string

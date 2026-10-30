@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import {
-  ContractsService,
-  MessageType,
-  UserExistenceResponse,
-} from '@taskflow/contracts'
-import { StoryLogger } from '@taskflow/logger'
-import { RabbitmqService } from '@taskflow/rabbitmq'
+import { ContractsService, MessageType, UserExistenceResponse } from 'contracts'
+import { StoryLogger } from 'logger'
+import { RabbitmqService } from 'rabbitmq'
 import { ConsumeMessage } from 'amqplib'
 import { UsersService } from './users.service.js'
 

@@ -5,7 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common'
-import { StoryLogger } from '@taskflow/logger'
+import { StoryLogger } from 'logger'
 import { Request, Response } from 'express'
 import { ApplicationError } from './application-error.js'
 import { ErrorCode } from './error-code.enum.js'

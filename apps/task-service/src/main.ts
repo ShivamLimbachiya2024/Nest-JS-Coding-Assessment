@@ -1,18 +1,15 @@
 import { ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import {
-  ApplicationExceptionFilter,
-  RequestLoggingInterceptor,
-} from '@taskflow/common'
-import { TaskflowConfigService } from '@taskflow/config'
+import { ApplicationExceptionFilter, RequestLoggingInterceptor } from 'common'
+import { AppConfigService } from 'config'
 import cookieParser from 'cookie-parser'
 import { Logger } from 'nestjs-pino'
 import { TaskServiceModule } from './task-service.module.js'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(TaskServiceModule, { bufferLogs: true })
-  const config = app.get(TaskflowConfigService)
+  const config = app.get(AppConfigService)
   config.validateHttp('TASK_SERVICE_PORT')
   app.useLogger(app.get(Logger))
   app.use(cookieParser())

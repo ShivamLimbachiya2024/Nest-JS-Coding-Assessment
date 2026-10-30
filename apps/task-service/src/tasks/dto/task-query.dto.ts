@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger'
-import { PaginationQueryDto } from '@taskflow/common'
-import { TaskStatus } from '@taskflow/contracts'
+import { PaginationQueryDto } from 'common'
+import { TaskStatus } from 'contracts'
 import { IsEnum, IsOptional, IsUUID } from 'class-validator'
 
 export class TaskQueryDto extends PaginationQueryDto {

@@ -24,11 +24,11 @@ Every plan must cover
 
 ## Active roadmap
 
-- [TaskFlow implementation roadmap](./taskflow-implementation-roadmap.md)
-- [Foundation and infrastructure](./taskflow-foundation-and-infrastructure.md)
+- [TaskFlow implementation roadmap](./implementation-roadmap.md)
+- [Foundation and infrastructure](./foundation-and-infrastructure.md)
 - [User Service and authentication](./user-service-and-authentication.md)
 - [Task Service and outbox](./task-service-and-outbox.md)
 - [Notification Service and consumer](./notification-service-and-consumer.md)
-- [Verification and delivery](./taskflow-verification-and-delivery.md)
+- [Verification and delivery](./verification-and-delivery.md)
 
 Plans must describe the smallest complete vertical slice. Do not add speculative future versions or unsupported architecture.

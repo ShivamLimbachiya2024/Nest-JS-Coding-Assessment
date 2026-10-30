@@ -7,15 +7,15 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { ApiCookieAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger'
-import { AccessAuthGuard } from '@taskflow/auth'
-import { PaginationResponse } from '@taskflow/common'
+import { AccessAuthGuard } from 'auth'
+import { PaginationResponse } from 'common'
 import { UserQueryDto } from './dto/user-query.dto.js'
 import { UserResponseDto } from './dto/user-response.dto.js'
 import { UsersService } from './users.service.js'
 
 @Controller('users')
 @ApiTags('users')
-@ApiCookieAuth('taskflow_access_token')
+@ApiCookieAuth('access_token')
 @UseGuards(AccessAuthGuard)
 export class UsersController {
   constructor(private readonly users: UsersService) {}

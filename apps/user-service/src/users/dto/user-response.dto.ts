@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { UserRole } from '@taskflow/contracts'
+import { UserRole } from 'contracts'
 
 export class UserResponseDto {
   @ApiProperty({ format: 'uuid' })

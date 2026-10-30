@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core'
-import { TaskflowConfigService } from '@taskflow/config'
-import { WorkerQueue } from '@taskflow/contracts'
-import { StoryLogger } from '@taskflow/logger'
-import { RabbitmqService, WorkerSelection } from '@taskflow/rabbitmq'
+import { AppConfigService } from 'config'
+import { WorkerQueue } from 'contracts'
+import { StoryLogger } from 'logger'
+import { RabbitmqService, WorkerSelection } from 'rabbitmq'
 import { Logger } from 'nestjs-pino'
 import { AppModule } from './app.module.js'
 import { UserExistenceHandler } from './users/user-existence-handler.js'
@@ -13,7 +13,7 @@ async function bootstrap(): Promise<void> {
   })
   app.useLogger(app.get(Logger))
   app.enableShutdownHooks()
-  const config = app.get(TaskflowConfigService)
+  const config = app.get(AppConfigService)
   const logger = app.get(StoryLogger)
   const rabbitmq = app.get(RabbitmqService)
   const handler = app.get(UserExistenceHandler)

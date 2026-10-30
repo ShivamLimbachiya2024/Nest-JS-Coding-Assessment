@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { UserRole } from '@taskflow/contracts'
+import { UserRole } from 'contracts'
 import { IsEmail, IsEnum, IsString, Length } from 'class-validator'
 
 export class RegisterUserDto {

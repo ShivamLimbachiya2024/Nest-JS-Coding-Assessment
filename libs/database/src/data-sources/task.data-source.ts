@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { TaskflowConfigService } from '../../../config/src/config.service.js'
+import { AppConfigService } from '../../../config/src/config.service.js'
 import { DataSource } from 'typeorm'
 import { DatabaseService } from '../database.service.js'
 import {
@@ -9,7 +9,7 @@ import {
 
 const taskDataSource = new DataSource(
   DatabaseService.options(
-    new TaskflowConfigService(),
+    new AppConfigService(),
     'tasks',
     [TaskEntity, OutboxMessageEntity],
     ['libs/database/src/migrations/task-service/*.{ts,js}'],

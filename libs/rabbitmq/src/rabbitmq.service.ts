@@ -1,14 +1,14 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
-import { TaskflowConfigService } from '@taskflow/config'
-import { WorkerQueue } from '@taskflow/contracts'
+import { AppConfigService } from 'config'
+import { WorkerQueue } from 'contracts'
 import type {
   ConsumerQueue,
   MessageEnvelope,
   MessageType,
   UserExistenceRequest,
   UserExistenceResponse,
-} from '@taskflow/contracts'
-import { StoryLogger } from '@taskflow/logger'
+} from 'contracts'
+import { StoryLogger } from 'logger'
 import {
   AmqpConnectionManager,
   Channel,
@@ -54,7 +54,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
   private replyQueue: string | undefined
 
   constructor(
-    private readonly config: TaskflowConfigService,
+    private readonly config: AppConfigService,
     private readonly logger: StoryLogger,
   ) {}
 
@@ -69,7 +69,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     })
     this.channel = this.connection.createChannel({
       confirm: true,
-      name: `${this.config.serviceName}-taskflow`,
+      name: `${this.config.serviceName}`,
       publishTimeout: 5_000,
       setup: (channel: Channel) => this.setupTopology(channel),
     })
@@ -344,7 +344,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       const errorType = error instanceof Error ? error.name : 'UnknownError'
       const attemptValue: unknown = get(
         message.properties.headers,
-        'x-taskflow-attempt',
+        'x-message-attempt',
       )
       const convertedAttempt = isNumber(attemptValue)
         ? attemptValue
@@ -357,7 +357,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
           queue: retryQueue,
           payload: message.content,
           options: {
-            headers: { 'x-taskflow-attempt': attempt + 1 },
+            headers: { 'x-message-attempt': attempt + 1 },
             messageId: message.properties.messageId,
             correlationId: message.properties.correlationId,
           },
@@ -370,7 +370,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
           queue: WorkerQueue.NOTIFICATION_DEAD,
           payload: message.content,
           options: {
-            headers: { 'x-taskflow-error-code': errorCode },
+            headers: { 'x-message-error-code': errorCode },
             messageId: message.properties.messageId,
             correlationId: message.properties.correlationId,
           },

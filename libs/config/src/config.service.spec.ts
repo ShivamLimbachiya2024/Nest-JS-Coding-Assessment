@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { TaskflowConfigService } from './config.service.js'
+import { AppConfigService } from './config.service.js'
 
-describe('TaskflowConfigService', () => {
-  let service: TaskflowConfigService
+describe('AppConfigService', () => {
+  let service: AppConfigService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [TaskflowConfigService],
+      providers: [AppConfigService],
     }).compile()
 
-    service = module.get<TaskflowConfigService>(TaskflowConfigService)
+    service = module.get<AppConfigService>(AppConfigService)
   })
 
   it('should be defined', () => {

@@ -1,12 +1,8 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import {
-  ApplicationError,
-  ErrorCode,
-  PaginationResponse,
-} from '@taskflow/common'
-import { UserRole } from '@taskflow/contracts'
-import { UserEntity } from '@taskflow/database/user-service'
+import { ApplicationError, ErrorCode, PaginationResponse } from 'common'
+import { UserRole } from 'contracts'
+import { UserEntity } from 'database/user-service'
 import toLower from 'lodash/toLower.js'
 import trim from 'lodash/trim.js'
 import map from 'lodash/map.js'

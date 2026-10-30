@@ -38,11 +38,11 @@ Copy the first value into `JWT_ACCESS_SECRET` and the second into `JWT_REFRESH_S
 
 ## Start PostgreSQL and RabbitMQ
 
-Choose one PostgreSQL option. RabbitMQ runs in Docker for both options.
+By default, Docker Compose starts only RabbitMQ. PostgreSQL is optional when you already have a server available.
 
-### Option A - Start a local development PostgreSQL container
+### Start PostgreSQL and RabbitMQ
 
-This is the easiest option on a fresh machine. The `clean-host` profile starts a PostgreSQL 16 container, creates the `taskflow` database, and publishes it on port 5432. The local `.env` defaults match this development database.
+For a clean local database, start PostgreSQL 16 and RabbitMQ with the `clean-host` profile. PostgreSQL creates the `taskflow` database on first startup and publishes it on port 5432. The local `.env` defaults match this development database.
 
 ```sh
 docker compose --profile clean-host up -d postgres rabbitmq
@@ -51,9 +51,9 @@ docker compose ps
 
 Wait until both containers show as healthy before continuing. The PostgreSQL service uses a named Docker volume, so its data remains when the containers are stopped.
 
-### Option B - Use a PostgreSQL server you already have
+### Use a PostgreSQL server you already have
 
-Do not start the Compose PostgreSQL container if another server already uses port 5432. Start RabbitMQ and edit the `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, and `DATABASE_NAME` values in `.env` to match your server.
+To use your own PostgreSQL instead, do not start the Compose PostgreSQL container. Edit the `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, and `DATABASE_NAME` values in `.env` to match your server.
 
 Create an empty database named `taskflow` once, if it does not already exist. For a PostgreSQL installation with `createdb` available, for example:
 
@@ -63,14 +63,14 @@ createdb -h localhost -p 5432 -U root taskflow
 
 Change the host or user in that command to match your PostgreSQL setup. If the database already exists, do not create it again.
 
-Start RabbitMQ:
+Start RabbitMQ when using your own PostgreSQL:
 
 ```sh
 docker compose up -d rabbitmq
 docker compose ps
 ```
 
-Wait for RabbitMQ to show as healthy. The management UI is available at `http://localhost:15672`; the development username and password are `taskflow` and `taskflow-dev-password` unless you changed the Compose configuration.
+Wait for RabbitMQ to show as healthy. The management UI is available at `http://localhost:15672`; the development username and password are `rabbit` and `rabbitmq-dev-password` unless you changed the Compose configuration.
 
 ## Create the service schemas
 
@@ -86,22 +86,16 @@ Each command creates its service-owned schema and tables in the `taskflow` datab
 
 ## Run TaskFlow on your machine
 
-Build the monorepo:
+Open six terminals in the repository root and start one process in each terminal. You do not need to build first. These scripts invoke `nest start <project> --watch`, so the Nest CLI compiles and restarts the selected HTTP app, worker, or outbox process when its source changes:
 
-```sh
-npm run build
-```
-
-Open six terminals in the repository root and start one process in each terminal:
-
-| Terminal | Command                                                                               | Purpose                           |
-| -------- | ------------------------------------------------------------------------------------- | --------------------------------- |
-| 1        | `npm run start-user`                                                                  | User Service HTTP API             |
-| 2        | `npm run start-user-worker`                                                           | User verification RabbitMQ worker |
-| 3        | `npm run start-task`                                                                  | Task Service HTTP API             |
-| 4        | `npm run start-task-outbox`                                                           | Task completion outbox publisher  |
-| 5        | `npm run start-notification`                                                          | Notification Service HTTP API     |
-| 6        | `WORKER_QUEUE=taskflow-notification-task-completed npm run start-notification-worker` | Task completion RabbitMQ worker   |
+| Terminal | Command                                            | Purpose                                                   |
+| -------- | -------------------------------------------------- | --------------------------------------------------------- |
+| 1        | `npm run start-user`                               | User Service HTTP API                                     |
+| 2        | `npm run start-user-verification-worker`           | User Service `user_verification` worker                   |
+| 3        | `npm run start-task`                               | Task Service HTTP API                                     |
+| 4        | `npm run start-task-outbox`                        | Task completion outbox publisher                          |
+| 5        | `npm run start-notification`                       | Notification Service HTTP API                             |
+| 6        | `npm run start-notification-task-completed-worker` | Notification Service `notification_task_completed` worker |
 
 Each HTTP service has Swagger documentation and health endpoints:
 
@@ -111,20 +105,13 @@ Each HTTP service has Swagger documentation and health endpoints:
 | Task         | `http://localhost:3002` | `http://localhost:3002/docs` | `http://localhost:3002/health/ready` |
 | Notification | `http://localhost:3003` | `http://localhost:3003/docs` | `http://localhost:3003/health/ready` |
 
-`WORKER_QUEUE` selects the single queue handled by a worker process. The User worker uses the `taskflow-user-verification` value in `.env`. Set `WORKER_QUEUE=taskflow-notification-task-completed` in the Notification worker's terminal as shown above.
+`WORKER_QUEUE` selects the single queue handled by a worker process. Each worker start script supplies its explicit, service-owned queue. Queue names use lower-case underscores, such as `user_verification` and `notification_task_completed`.
 
-## Run the application processes in Docker
+The worker scripts select one queue each and start the matching Nest CLI worker project. `npm run build` remains available when you want to compile all six projects, but the documented start commands run in watch mode.
 
-Start PostgreSQL and RabbitMQ first using Option A above, or make an existing PostgreSQL server available on the host. Apply the migrations from your machine as described above, then start the six application processes in Docker:
+## Docker Compose scope
 
-```sh
-docker compose up --build -d
-docker compose ps
-```
-
-The Compose application containers connect to PostgreSQL through `host.docker.internal` and to RabbitMQ through the Compose network. This setup is intended for Docker Desktop. On a native Linux Docker Engine, configure the host gateway in your local Compose setup if `host.docker.internal` does not resolve.
-
-The APIs use ports 3001, 3002, and 3003. RabbitMQ uses ports 5672 and 15672. If any of those ports are already in use, stop the conflicting process or update the Compose port mapping and matching `.env` values.
+Docker Compose can run all six application processes in the same Nest CLI watch mode. It mounts the repository source into each app container so edits reload. To run everything in containers with the provided PostgreSQL, use `docker compose --profile clean-host --profile application up --build -d`. If PostgreSQL is already available on the host, use `docker compose --profile application up --build -d`. The APIs use ports 3001, 3002, and 3003. RabbitMQ uses ports 5672 and 15672.
 
 Stop the Compose containers while preserving their named volumes and data:
 
@@ -219,18 +206,18 @@ See [implementation plans](./docs/plans/README.md) and [API/message contracts](.
 The workspace and source artifacts were generated with Nest CLI 12.0.11 and its Nest schematics. These commands document the application and library generation shape; the project names are `user-service`, `task-service`, `notification-service`, `auth`, `common`, `config`, `contracts`, `database`, `logger`, and `rabbitmq`.
 
 ```sh
-export TASKFLOW_SCAFFOLD_DIR="$(mktemp -d)"
-npx --yes --package=node@24 --package=@nestjs/cli@12.0.11 nest new user-service --directory "$TASKFLOW_SCAFFOLD_DIR" --package-manager npm --strict --skip-git --no-observe
-cd "$TASKFLOW_SCAFFOLD_DIR"
+export SCAFFOLD_DIR="$(mktemp -d)"
+npx --yes --package=node@24 --package=@nestjs/cli@12.0.11 nest new user-service --directory "$SCAFFOLD_DIR" --package-manager npm --strict --skip-git --no-observe
+cd "$SCAFFOLD_DIR"
 npx nest generate app task-service
 npx nest generate app notification-service
-npx nest generate library auth --prefix @taskflow
-npx nest generate library common --prefix @taskflow
-npx nest generate library config --prefix @taskflow
-npx nest generate library contracts --prefix @taskflow
-npx nest generate library database --prefix @taskflow
-npx nest generate library logger --prefix @taskflow
-npx nest generate library rabbitmq --prefix @taskflow
+npx nest generate library auth
+npx nest generate library common
+npx nest generate library config
+npx nest generate library contracts
+npx nest generate library database
+npx nest generate library logger
+npx nest generate library rabbitmq
 ```
 
 Feature modules and providers were generated with their corresponding Nest CLI schematics. TypeORM migrations are generated and run only through the service-specific npm scripts. The migration generation commands are:

@@ -18,9 +18,9 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger'
-import { AccessAuthGuard, Roles, RolesGuard } from '@taskflow/auth'
-import { PaginationResponse } from '@taskflow/common'
-import { UserRole } from '@taskflow/contracts'
+import { AccessAuthGuard, Roles, RolesGuard } from 'auth'
+import { PaginationResponse } from 'common'
+import { UserRole } from 'contracts'
 import { AssignTaskDto } from './dto/assign-task.dto.js'
 import { CreateTaskDto } from './dto/create-task.dto.js'
 import { TaskQueryDto } from './dto/task-query.dto.js'
@@ -30,7 +30,7 @@ import { TasksService } from './tasks.service.js'
 
 @Controller('tasks')
 @ApiTags('tasks')
-@ApiCookieAuth('taskflow_access_token')
+@ApiCookieAuth('access_token')
 @UseGuards(AccessAuthGuard)
 export class TasksController {
   constructor(private readonly tasks: TasksService) {}

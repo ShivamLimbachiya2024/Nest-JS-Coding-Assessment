@@ -8,7 +8,7 @@ import trim from 'lodash/trim.js'
 import uniq from 'lodash/uniq.js'
 
 @Injectable()
-export class TaskflowConfigService {
+export class AppConfigService {
   required(name: string): string {
     const value = trim(process.env[name])
 
@@ -104,11 +104,11 @@ export class TaskflowConfigService {
   }
 
   get accessCookieName(): string {
-    return this.optional('ACCESS_COOKIE_NAME', 'taskflow_access_token')
+    return this.optional('ACCESS_COOKIE_NAME', 'access_token')
   }
 
   get refreshCookieName(): string {
-    return this.optional('REFRESH_COOKIE_NAME', 'taskflow_refresh_token')
+    return this.optional('REFRESH_COOKIE_NAME', 'refresh_token')
   }
 
   get cookieDomain(): string | undefined {

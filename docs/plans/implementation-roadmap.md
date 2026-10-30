@@ -10,11 +10,11 @@ User Service owns users, credentials, refresh sessions, token issuance, user que
 
 ## Dependencies and order
 
-1. [Foundation and infrastructure](./taskflow-foundation-and-infrastructure.md)
+1. [Foundation and infrastructure](./foundation-and-infrastructure.md)
 2. [User Service and authentication](./user-service-and-authentication.md)
 3. [Task Service and outbox](./task-service-and-outbox.md)
 4. [Notification Service and consumer](./notification-service-and-consumer.md)
-5. [Verification and delivery](./taskflow-verification-and-delivery.md)
+5. [Verification and delivery](./verification-and-delivery.md)
 
 The shared platform precedes feature wiring. User verification must exist before Task Service integration. The completion contract and task outbox precede Notification Service consumption.
 
@@ -41,4 +41,4 @@ Every endpoint, message flow, migration, worker queue restriction, error mapping
 - [x] Notification Service implemented and verified
 - [x] Full delivery verification completed
 
-The full verification report and the checks exercised are recorded in [verification and delivery](./taskflow-verification-and-delivery.md). Docker app images built and all six Compose processes reached running state while the three HTTP readiness endpoints returned `ready`.
+The full verification report and the checks exercised are recorded in [verification and delivery](./verification-and-delivery.md). Docker app images built and all six Compose processes reached running state while the three HTTP readiness endpoints returned `ready`.
