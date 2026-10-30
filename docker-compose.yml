@@ -17,7 +17,6 @@ services:
 
   postgres:
     image: postgres:16
-    profiles: ['clean-host']
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: password
@@ -44,12 +43,14 @@ services:
     env_file: .env
     environment:
       SERVICE_NAME: user-service
-      DATABASE_HOST: host.docker.internal
+      DATABASE_HOST: postgres
       RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
     ports:
       - '3001:3001'
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
   task-service:
@@ -64,12 +65,14 @@ services:
     env_file: .env
     environment:
       SERVICE_NAME: task-service
-      DATABASE_HOST: host.docker.internal
+      DATABASE_HOST: postgres
       RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
     ports:
       - '3002:3002'
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
   notification-service:
@@ -84,12 +87,14 @@ services:
     env_file: .env
     environment:
       SERVICE_NAME: notification-service
-      DATABASE_HOST: host.docker.internal
+      DATABASE_HOST: postgres
       RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
     ports:
       - '3003:3003'
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
   user-verification-worker:
@@ -104,11 +109,13 @@ services:
     env_file: .env
     environment:
       SERVICE_NAME: user-verification-worker
-      DATABASE_HOST: host.docker.internal
+      DATABASE_HOST: postgres
       RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
       WORKER_QUEUE: user_verification
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
   notification-task-completed-worker:
@@ -123,11 +130,13 @@ services:
     env_file: .env
     environment:
       SERVICE_NAME: notification-task-completed-worker
-      DATABASE_HOST: host.docker.internal
+      DATABASE_HOST: postgres
       RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
       WORKER_QUEUE: notification_task_completed
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
   task-outbox-publisher:
@@ -142,10 +151,12 @@ services:
     env_file: .env
     environment:
       SERVICE_NAME: task-outbox-publisher
-      DATABASE_HOST: host.docker.internal
+      DATABASE_HOST: postgres
       RABBITMQ_URL: amqp://rabbit:rabbitmq-dev-password@rabbitmq:5672
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
 volumes:

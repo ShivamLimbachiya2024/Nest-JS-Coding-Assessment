@@ -38,14 +38,12 @@ Copy the first value into `JWT_ACCESS_SECRET` and the second into `JWT_REFRESH_S
 
 ## Start PostgreSQL and RabbitMQ
 
-By default, Docker Compose starts only RabbitMQ. PostgreSQL is optional when you already have a server available.
+By default, Docker Compose starts both RabbitMQ and PostgreSQL. PostgreSQL 16 creates the `taskflow` database on first startup and publishes it on port 5432. The local `.env` defaults match this development database.
 
-### Start PostgreSQL and RabbitMQ
-
-For a clean local database, start PostgreSQL 16 and RabbitMQ with the `clean-host` profile. PostgreSQL creates the `taskflow` database on first startup and publishes it on port 5432. The local `.env` defaults match this development database.
+### Start infrastructure
 
 ```sh
-docker compose --profile clean-host up -d postgres rabbitmq
+docker compose up -d
 docker compose ps
 ```
 
@@ -53,7 +51,7 @@ Wait until both containers show as healthy before continuing. The PostgreSQL ser
 
 ### Use a PostgreSQL server you already have
 
-To use your own PostgreSQL instead, do not start the Compose PostgreSQL container. Edit the `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, and `DATABASE_NAME` values in `.env` to match your server.
+To use your own PostgreSQL for host-run application processes, edit the `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, and `DATABASE_NAME` values in `.env` to match your server, and stop the Compose PostgreSQL container with `docker compose stop postgres`.
 
 Create an empty database named `taskflow` once, if it does not already exist. For a PostgreSQL installation with `createdb` available, for example:
 
@@ -63,7 +61,7 @@ createdb -h localhost -p 5432 -U root taskflow
 
 Change the host or user in that command to match your PostgreSQL setup. If the database already exists, do not create it again.
 
-Start RabbitMQ when using your own PostgreSQL:
+Start RabbitMQ for host-run application processes:
 
 ```sh
 docker compose up -d rabbitmq
@@ -111,7 +109,7 @@ The worker scripts select one queue each and start the matching Nest CLI worker 
 
 ## Docker Compose scope
 
-Docker Compose can run all six application processes in the same Nest CLI watch mode. It mounts the repository source into each app container so edits reload. To run everything in containers with the provided PostgreSQL, use `docker compose --profile clean-host --profile application up --build -d`. If PostgreSQL is already available on the host, use `docker compose --profile application up --build -d`. The APIs use ports 3001, 3002, and 3003. RabbitMQ uses ports 5672 and 15672.
+Docker Compose can run all six application processes in the same Nest CLI watch mode. It mounts the repository source into each app container so edits reload. Start infrastructure alone with `docker compose up -d`, or start infrastructure and all application processes with `docker compose --profile application up --build -d`. The app containers connect to the Compose PostgreSQL service by its service name. The APIs use ports 3001, 3002, and 3003. RabbitMQ uses ports 5672 and 15672.
 
 Stop the Compose containers while preserving their named volumes and data:
 
